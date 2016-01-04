@@ -49,14 +49,14 @@ random_group <- function(n, probs) {
 }
 partition <- function(df, n, probs) {
   replicate(n, split(df, random_group(nrow(df), probs)), FALSE) %>%
-    zip_n() %>%
+    transpose() %>%
     as_data_frame()
 }
 
 msd <- function(x, y) sqrt(mean((x - y) ^ 2))
 
 # Genearte 100 rbootandom test-training splits
-boot <- partition(mtcars, 100, c(test = 0.8, training = 0.2))
+boot <- partition(mtcars, 100, c(training = 0.8, test = 0.2))
 boot
 
 boot <- boot %>% mutate(
@@ -76,11 +76,10 @@ mean(unlist(boot$diffs))
 ### Transformation
 
 * Apply a function to each element: `map()` returns a list;
-  `flatmap()` and `map_lgl()`/`map_int()`/`map_dbl()`/`map_chr()`
-  return a vector; `walk()` invisibly returns original list, calling
-  the function for its side effects; `map2()` and `map3()` vectorise
-  over multiple inputs; `at_depth()` maps a function at a specified
-  level of nested lists.
+  `map_lgl()`/`map_int()`/`map_dbl()`/`map_chr()` return a vector; 
+  `walk()` invisibly returns original list, calling the function for its side 
+  effects; `map2()` and `pmap()` vectorise over multiple inputs; 
+  `at_depth()` maps a function at a specified level of nested lists.
 
 * Apply a function conditionally with `map_if()` (where a predicate
   returns `TRUE`) and `map_at()` (at specific locations).
@@ -103,7 +102,7 @@ mean(unlist(boot$diffs))
 
 ### List manipulation and creation
 
-* Zip together two or more lists with `zip_n()`.
+* Transpose a list with `transpose()`.
 
 * Create the cartesian product of the elements of several lists with
   `cross_n()` and `cross_d()`.
@@ -163,10 +162,8 @@ The goal is not to try and simulate Haskell in R: purrr does not implement curry
   For chains of transformations functions, `. %>% f() %>% g()` is
   equivalent to `function(.) . %>% f() %>% g()`.
 
-* R is weakly typed, so we can implement general `zip_n()`, rather than having
-  to specialise on the number of arguments. (That said I still provide `map2()`
-  and `map3()` since it's useful to clearly separate which arguments are
-  vectorised over).
+* R is weakly typed, we need variants `map_int()`, `map_dbl()`, etc since we 
+  don't know what `.f` will return.
 
 * R has named arguments, so instead of providing different functions for
   minor variations (e.g. `detect()` and `detectLast()`) I use a named

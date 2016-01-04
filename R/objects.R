@@ -72,10 +72,10 @@ prepend <- function(x, values, before = 1) {
 #'         \code{is.atomic()}, \code{is_bare_atomic()} does not return
 #'         \code{TRUE} for \code{NULL}.
 #'   \item Unlike base R \code{is.numeric()}, \code{is_bare_double()}
-#'         only return \code{TRUE} for floating point numbers.
+#'         only returns \code{TRUE} for floating point numbers.
 #' }
 #' @param x object to be tested.
-#' @seealso type-predicates
+#' @seealso \link{type-predicates} \link{scalar-type-predicates}
 #' @name bare-type-predicates
 NULL
 
@@ -145,7 +145,7 @@ is_bare_logical <- function(x) {
 #'     are \code{TRUE}, not \code{FALSE}.
 #' }
 #' @param x object to be tested.
-#' @seealso bare-type-predicates
+#' @seealso \link{bare-type-predicates} \link{scalar-type-predicates}
 #' @name type-predicates
 NULL
 
@@ -197,12 +197,18 @@ is_logical <- function(x) {
   typeof(x) == "logical"
 }
 
+#' @export
+#' @rdname type-predicates
+is_null <- function(x) {
+  typeof(x) == "NULL"
+}
+
 #' Scalar type predicates
 #'
 #' These predicates check for a given type and whether the vector is
 #' "scalar", that is, of length 1.
 #' @param x object to be tested.
-#' @seealso type-predicates bare-type-predicates
+#' @seealso \link{type-predicates} \link{bare-type-predicates}
 #' @name scalar-type-predicates
 NULL
 
