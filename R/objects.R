@@ -143,6 +143,8 @@ is_bare_logical <- function(x) {
 #'         checks for the presence of attributes (other than name).
 #'   \item \code{is_numeric()} is not generic so, (e.g.) dates and date times
 #'     are \code{TRUE}, not \code{FALSE}.
+#'   \item \code{is_function()} returns \code{TRUE} only for regular
+#'     functions, not special or primitive functions.
 #' }
 #' @param x object to be tested.
 #' @seealso \link{bare-type-predicates} \link{scalar-type-predicates}
@@ -201,6 +203,24 @@ is_logical <- function(x) {
 #' @rdname type-predicates
 is_null <- function(x) {
   typeof(x) == "NULL"
+}
+
+#' @export
+#' @rdname type-predicates
+is_function <- function(x) {
+  typeof(x) == "closure"
+}
+
+is_name <- function(x) {
+  typeof(x) == "name"
+}
+
+is_call <- function(x) {
+  typeof(x) == "language"
+}
+
+is_language <- function(x) {
+  is_call(x) || is_name(x) || is_atomic(x)
 }
 
 #' Scalar type predicates
