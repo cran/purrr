@@ -1,3 +1,14 @@
+# purrr 0.2.2
+
+* Fix for dev tibble support.
+
+* `as_function()` now supports list arguments which allow recursive indexing
+   using either names or positions. They now always stop when encountering
+   the first NULL (#173).
+
+* `accumulate` and `reduce` correctly pass extra arguments to the
+   worker function.
+
 # purrr 0.2.1
 
 * `as_function()` gains a `.null` argument that for character and numeric

@@ -1,6 +1,6 @@
 Package: purrr
 Title: Functional Programming Tools
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(
     person("Hadley", "Wickham", , "hadley@rstudio.com", c("aut", "cre")),
     person("Lionel", "Henry", , "lionel.hry@gmail.com", "ctb"),
@@ -11,17 +11,17 @@ Description: Make your pure functions purr with the 'purrr' package. This
     present in other programming languages.
 License: GPL-3 | file LICENSE
 LazyData: true
-Imports: magrittr (>= 1.5), dplyr (>= 0.4.3), Rcpp, lazyeval
+Imports: magrittr (>= 1.5), dplyr (>= 0.4.3), Rcpp, lazyeval (>= 0.2.0)
 Suggests: testthat, covr
 LinkingTo: Rcpp, dplyr, BH
 URL: https://github.com/hadley/purrr
 BugReports: https://github.com/hadley/purrr/issues
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
-Packaged: 2016-02-12 19:27:05 UTC; hadley
+Packaged: 2016-06-17 22:17:44 UTC; hadley
 Author: Hadley Wickham [aut, cre],
   Lionel Henry [ctb],
   RStudio [cph]
 Maintainer: Hadley Wickham <hadley@rstudio.com>
 Repository: CRAN
-Date/Publication: 2016-02-13 00:44:08
+Date/Publication: 2016-06-18 10:05:18
