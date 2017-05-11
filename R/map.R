@@ -63,7 +63,6 @@
 #'   map_df(~ as.data.frame(t(as.matrix(coef(.)))))
 #' # (if you also want to preserve the variable names see
 #' # the broom package)
-#' @useDynLib purrr map_impl map_by_slice_impl
 map <- function(.x, .f, ...) {
   .f <- as_function(.f, ...)
   .Call(map_impl, environment(), ".x", ".f", "list")
@@ -112,6 +111,10 @@ map_dbl <- function(.x, .f, ...) {
 #'   giving either the name or the index of the data frame.
 #' @export
 map_df <- function(.x, .f, ..., .id = NULL) {
+  if (!requireNamespace("dplyr", quietly = TRUE)) {
+    stop("`map_df()` requires dplyr", call. = FALSE)
+  }
+
   .f <- as_function(.f, ...)
   res <- map(.x, .f, ...)
   dplyr::bind_rows(res, .id = .id)
@@ -163,7 +166,6 @@ walk <- function(.x, .f, ...) {
 #' by_cyl <- mtcars %>% split(.$cyl)
 #' mods <- by_cyl %>% map(~ lm(mpg ~ wt, data = .))
 #' map2(mods, by_cyl, predict)
-#' @useDynLib purrr map2_impl
 map2 <- function(.x, .y, .f, ...) {
   .f <- as_function(.f, ...)
   .Call(map2_impl, environment(), ".x", ".y", ".f", "list")
@@ -196,6 +198,10 @@ map2_chr <- function(.x, .y, .f, ...) {
 #' @rdname map2
 #' @export
 map2_df <- function(.x, .y, .f, ..., .id = NULL) {
+  if (!requireNamespace("dplyr", quietly = TRUE)) {
+    stop("`map2_df()` requires dplyr", call. = FALSE)
+  }
+
   .f <- as_function(.f, ...)
   res <- map2(.x, .y, .f, ...)
   dplyr::bind_rows(res, .id = .id)
@@ -212,7 +218,6 @@ map3 <- function(.x, .y, .z, .f, ...) {
 
 #' @export
 #' @rdname map2
-#' @useDynLib purrr pmap_impl
 pmap <- function(.l, .f, ...) {
   .f <- as_function(.f, ...)
   .Call(pmap_impl, environment(), ".l", ".f", "list")
@@ -245,6 +250,10 @@ pmap_chr <- function(.l, .f, ...) {
 #' @rdname map2
 #' @export
 pmap_df <- function(.l, .f, ..., .id = NULL) {
+  if (!requireNamespace("dplyr", quietly = TRUE)) {
+    stop("`pmap_df()` requires dplyr", call. = FALSE)
+  }
+
   .f <- as_function(.f, ...)
   res <- pmap(.l, .f, ...)
   dplyr::bind_rows(res, .id = .id)
