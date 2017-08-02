@@ -7,20 +7,20 @@
 #' @section Design choices:
 #'
 #' There are many ways to implement partial function application in R.
-#' (see e.g. \code{dots} in \url{https://github.com/crowding/ptools} for another
+#' (see e.g. `dots` in \url{https://github.com/crowding/ptools} for another
 #' approach.)  This implementation is based on creating functions that are as
 #' similar as possible to the anonymous functions that you'd create by hand,
-#' if you weren't using \code{partial}.
+#' if you weren't using `partial`.
 #'
-#' @param ...f a function. For the output source to read well, this should be an
-#'   be a named function.
-#' @param ... named arguments to \code{...f} that should be partially applied.
+#' @param ...f a function. For the output source to read well, this should be a
+#'   named function.
+#' @param ... named arguments to `...f` that should be partially applied.
 #' @param .env the environment of the created function. Defaults to
-#'   \code{\link{parent.frame}} and you should rarely need to modify this.
-#' @param .lazy If \code{TRUE} arguments evaluated lazily, if \code{FALSE},
-#'   evaluated when \code{partial} is called.
-#' @param .first If \code{TRUE}, the partialized arguments are placed
-#'   to the front of the function signature. If \code{FALSE}, they are
+#'   [parent.frame()] and you should rarely need to modify this.
+#' @param .lazy If `TRUE` arguments evaluated lazily, if `FALSE`,
+#'   evaluated when `partial` is called.
+#' @param .first If `TRUE`, the partialized arguments are placed
+#'   to the front of the function signature. If `FALSE`, they are
 #'   moved to the back. Only useful to control position matching of
 #'   arguments when the partialized arguments are not named.
 #' @export
@@ -55,7 +55,8 @@
 #' plot2 <- partial(plot, my_long_variable)
 #' plot2()
 #' plot2(runif(10), type = "l")
-partial <- function(...f, ..., .env = parent.frame(), .lazy = TRUE, .first = TRUE) {
+partial <- function(...f, ..., .env = parent.frame(), .lazy = TRUE,
+                    .first = TRUE) {
   stopifnot(is.function(...f))
 
   if (.lazy) {
@@ -77,18 +78,10 @@ partial <- function(...f, ..., .env = parent.frame(), .lazy = TRUE, .first = TRU
   }
 
   args <- list("..." = quote(expr = ))
-  make_function(args, fcall, .env)
+  new_function(args, fcall, .env)
 }
 
 make_call <- function(f, ..., .args = list()) {
   if (is.character(f)) f <- as.name(f)
   as.call(c(f, ..., .args))
-}
-
-make_function <- function(args, body, env = parent.frame()) {
-  args <- as.pairlist(args)
-  stopifnot(is.call(body) || is.name(body) || is.atomic(body))
-  env <- as.environment(env)
-
-  eval(call("function", args, body), env)
 }

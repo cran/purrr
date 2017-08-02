@@ -7,6 +7,8 @@
 \alias{invoke_map_int}
 \alias{invoke_map_dbl}
 \alias{invoke_map_chr}
+\alias{invoke_map_dfr}
+\alias{invoke_map_dfc}
 \alias{invoke_map_df}
 \alias{map_call}
 \title{Invoke functions.}
@@ -23,7 +25,9 @@ invoke_map_dbl(.f, .x = list(NULL), ..., .env = NULL)
 
 invoke_map_chr(.f, .x = list(NULL), ..., .env = NULL)
 
-invoke_map_df(.f, .x = list(NULL), ..., .env = NULL)
+invoke_map_dfr(.f, .x = list(NULL), ..., .env = NULL)
+
+invoke_map_dfc(.f, .x = list(NULL), ..., .env = NULL)
 }
 \arguments{
 \item{.f}{For \code{invoke}, a function; for \code{invoke_map} a
@@ -33,11 +37,11 @@ list of functions.}
 list of argument-lists the same length as \code{.f} (or length 1).
 The default argument, \code{list(NULL)}, will be recycled to the
 same length as \code{.f}, and will call each function with no
-arguments (apart from any suppled in \code{...}.}
+arguments (apart from any supplied in \code{...}.}
 
 \item{...}{Additional arguments passed to each function.}
 
-\item{.env}{Environment in which \code{\link{do.call}()} should
+\item{.env}{Environment in which \code{\link[=do.call]{do.call()}} should
 evaluate a constructed expression. This only matters if you pass
 as \code{.f} the name of a function rather than its value, or as
 \code{.x} symbols of objects rather than their values.}
@@ -58,7 +62,7 @@ invoke(runif, n = 10)
 invoke(paste, list("01a", "01b"), sep = "-")
 # That's more natural as part of a pipeline:
 list("01a", "01b") \%>\%
-  invoke(paste, ., sep = ".")
+  invoke(paste, ., sep = "-")
 
 # Invoke a list of functions, each with different arguments
 invoke_map(list(runif, rnorm), list(list(n = 10), list(n = 5)))
@@ -79,9 +83,9 @@ list(m1 = mean, m2 = median) \%>\%
   invoke_map(, rcauchy(100))
 
 # If you have pairs of function name and arguments, it's natural
-# to store them in a data frame:
-if (requireNamespace("dplyr", quietly = TRUE)) {
-df <- dplyr::data_frame(
+# to store them in a data frame. Here we use a tibble because
+# it has better support for list-columns
+df <- tibble::tibble(
   f = c("runif", "rpois", "rnorm"),
   params = list(
     list(n = 10),
@@ -92,4 +96,8 @@ df <- dplyr::data_frame(
 df
 invoke_map(df$f, df$params)
 }
+\seealso{
+Other map variants: \code{\link{imap}}, \code{\link{lmap}},
+  \code{\link{map2}}, \code{\link{map}},
+  \code{\link{modify}}
 }

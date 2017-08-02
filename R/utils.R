@@ -8,108 +8,6 @@
 #' @usage lhs \%>\% rhs
 NULL
 
-
-#' Modify a list
-#'
-#' @param _data A list.
-#' @param ... New values of a list. Use \code{NULL} to remove values.
-#'   Use a formula to evaluate in the context of the list values.
-#' @export
-#' @examples
-#' x <- list(x = 1:10, y = 4)
-#' update_list(x, z = 10)
-#' update_list(x, z = ~ x + y)
-update_list <- function(`_data`, ...) {
-  new_values <- list(...)
-
-  is_formula <- map_lgl(new_values, ~inherits(., "formula"))
-
-  new_values[is_formula] <- lapply(new_values[is_formula], function(f) {
-    stopifnot(length(f) == 2)
-    eval(f[[2]], `_data`, environment(f))
-  })
-
-  utils::modifyList(`_data`, new_values)
-}
-
-#' Convert an object into a function.
-#'
-#' \code{as_function} is the powerhouse behind the varied function
-#' specifications that purrr functions allow. This is an S3 generic so that
-#' other people can make \code{as_function} work with their own objects.
-#'
-#' @param .f A function, formula, or atomic vector.
-#'
-#'   If a \strong{function}, it is used as is.
-#'
-#'   If a \strong{formula}, e.g. \code{~ .x + 2}, it is converted to a
-#'   function with two arguments, \code{.x} or \code{.} and \code{.y}. This
-#'   allows you to create very compact anonymous functions with up to
-#'   two inputs.
-#'
-#'   If \strong{character} or \strong{integer vector}, e.g. \code{"y"}, it
-#'   is converted to an extractor function, \code{function(x) x[["y"]]}. To
-#'   index deeply into a nested list, use multiple values; \code{c("x", "y")}
-#'   is equivalent to \code{z[["x"]][["y"]]}. You can also set \code{.null}
-#'   to set a default to use instead of \code{NULL} for absent components.
-#' @param ... Additional arguments passed on to methods.
-#' @export
-#' @examples
-#' as_function(~ . + 1)
-#' as_function(1)
-#' as_function(c("a", "b", "c"))
-#' as_function(c("a", "b", "c"), .null = NA)
-as_function <- function(.f, ...) {
-  UseMethod("as_function")
-}
-
-#' @export
-as_function.function <- function(.f, ...) .f
-
-#' @export
-as_function.formula <- function(.f, ...) {
-  .x <- NULL # hush R CMD check NOTE
-
-  if (length(.f) != 2) {
-    stop("Formula must be one sided", call. = FALSE)
-  }
-  make_function(alist(.x = , .y = , . = .x), .f[[2]], environment(.f))
-}
-
-
-extract <- function(x, index, .null = NULL) {
-  .Call(extract_impl, x, index, .null)
-}
-
-#' @export
-#' @rdname as_function
-#' @param .null Optional additional argument for character and numeric
-#'   inputs.
-as_function.character <- function(.f, ..., .null = NULL) {
-  as_function(as.list(.f), ..., .null = .null)
-}
-
-#' @export
-as_function.numeric <- function(.f, ..., .null = NULL) {
-  as_function(as.list(.f), ..., .null = .null)
-}
-
-#' @export
-as_function.list <- function(.f, ..., .null = NULL) {
-  idx <- .f
-  function(g, ...) {
-    extract(g, idx, .null)
-  }
-}
-
-
-#' @export
-as_function.default <- function(.f, ...) {
-  stop("Don't know how to convert ", paste0(class(.f), collapse = "/"),
-       " into a function", call. = FALSE)
-}
-
-
 maybe_as_data_frame <- function(out, x) {
   if (is.data.frame(x)) {
     tibble::as_tibble(out)
@@ -132,14 +30,14 @@ names2 <- function(x) {
   names(x) %||% rep("", length(x))
 }
 
-#' Default value for \code{NULL}.
+#' Default value for `NULL`.
 #'
-#' This infix function makes it easy to replace \code{NULL}s with a
-#' default value. It's inspired by the way that Ruby's or operation (\code{||})
+#' This infix function makes it easy to replace `NULL`s with a
+#' default value. It's inspired by the way that Ruby's or operation (`||`)
 #' works.
 #'
-#' @param x,y If \code{x} is NULL, will return \code{y}; otherwise returns
-#'   \code{x}.
+#' @param x,y If `x` is NULL, will return `y`; otherwise returns
+#'   `x`.
 #' @export
 #' @name null-default
 #' @examples
@@ -165,28 +63,35 @@ names2 <- function(x) {
 `%@%` <- function(x, name) attr(x, name, exact = TRUE)
 
 
-#' Generate random samples from a Bernoulli distribution
+#' Generate random sample from a Bernoulli distribution
 #'
 #' @param n Number of samples
-#' @param p Probability of getting \code{TRUE}
+#' @param p Probability of getting `TRUE`
 #' @return A logical vector
 #' @export
 #' @examples
 #' rbernoulli(10)
 #' rbernoulli(100, 0.1)
 rbernoulli <- function(n, p = 0.5) {
-  sample(c(TRUE, FALSE), n, replace = TRUE, prob = c(p, 1 - p))
+  stats::runif(n) > (1 - p)
 }
 
-#' Generate random samples from a discrete uniform distribution
+#' Generate random sample from a discrete uniform distribution
 #'
 #' @param n Number of samples to draw.
 #' @param a,b Range of the distribution (inclusive).
 #' @export
 #' @examples
 #' table(rdunif(1e3, 10))
+#' table(rdunif(1e3, 10, -5))
 rdunif <- function(n, b, a = 1) {
-  sample(b - a + 1, n, replace = TRUE) + a - 1
+  stopifnot(is.numeric(a), length(a) == 1)
+  stopifnot(is.numeric(b), length(b) == 1)
+
+  a1 <- min(a, b)
+  b1 <- max(a, b)
+
+  sample(b1 - a1 + 1, n, replace = TRUE) + a1 - 1
 }
 
 # magrittr placeholder
@@ -200,4 +105,10 @@ has_names <- function(x) {
   } else {
     !(is.na(nms) | nms == "")
   }
+}
+
+ndots <- function(...) nargs()
+
+is_names <- function(nms) {
+  is_character(nms) && !any(is.na(nms) | nms == "")
 }

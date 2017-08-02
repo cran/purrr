@@ -6,15 +6,14 @@
 \alias{purrr-package}
 \title{purrr: Functional Programming Tools}
 \description{
-Make your pure functions purr with the 'purrr' package. This
-package completes R's functional programming tools with missing features
-present in other programming languages.
+A complete and consistent functional programming toolkit for R.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/hadley/purrr}
-  \item Report bugs at \url{https://github.com/hadley/purrr/issues}
+  \item \url{http://purrr.tidyverse.org}
+  \item \url{https://github.com/tidyverse/purrr}
+  \item Report bugs at \url{https://github.com/tidyverse/purrr/issues}
 }
 
 }
@@ -28,7 +27,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item RStudio [copyright holder]
+  \item RStudio [copyright holder, funder]
 }
 
 }

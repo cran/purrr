@@ -8,15 +8,15 @@ associated with the first valid match.}
 when(., ...)
 }
 \arguments{
-\item{.}{the value to match agaist}
+\item{.}{the value to match against}
 
 \item{...}{formulas; each containing a condition as LHS and an action as RHS.
 named arguments will define additional values.}
 }
 \value{
 The value resulting from the action of the first valid
-  match/condition is returned. If no matches are found, and no default is
-  given, NULL will be returned.
+match/condition is returned. If no matches are found, and no default is
+given, NULL will be returned.
 
 Validity of the conditions are tested with \code{isTRUE}, or equivalently
 with \code{identical(condition, TRUE)}.
@@ -58,3 +58,4 @@ iris \%>\%
   when(nrow(.) < 10 ~ .,
        ~ stop("Expected fewer than 10 rows."))
 }
+\keyword{internal}

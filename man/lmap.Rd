@@ -32,7 +32,7 @@ modified.}
 }
 \value{
 If \code{.x} is a list, a list. If \code{.x} is a data
-  frame, a data frame.
+frame, a data frame.
 }
 \description{
 \code{lmap()}, \code{lmap_at()} and \code{lmap_if()} are similar to
@@ -96,7 +96,7 @@ disjoin <- function(x, sep = "_") {
   })
 
   names(out) <- paste(name, levels(x), sep = sep)
-  dplyr::as_data_frame(out)
+  tibble::as_tibble(out)
 }
 
 # Now, we are ready to map disjoin() on each categorical variable of a
@@ -105,6 +105,7 @@ iris \%>\% lmap_if(is.factor, disjoin)
 mtcars \%>\% lmap_at(c("cyl", "vs", "am"), disjoin)
 }
 \seealso{
-\code{\link{map_at}()}, \code{\link{map_if}()} and
-  \code{\link{map}()}
+Other map variants: \code{\link{imap}},
+  \code{\link{invoke}}, \code{\link{map2}},
+  \code{\link{map}}, \code{\link{modify}}
 }

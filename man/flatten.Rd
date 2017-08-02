@@ -6,6 +6,8 @@
 \alias{flatten_int}
 \alias{flatten_dbl}
 \alias{flatten_chr}
+\alias{flatten_dfr}
+\alias{flatten_dfc}
 \alias{flatten_df}
 \title{Flatten a list of lists into a simple vector.}
 \usage{
@@ -19,7 +21,9 @@ flatten_dbl(.x)
 
 flatten_chr(.x)
 
-flatten_df(.x, .id = NULL)
+flatten_dfr(.x, .id = NULL)
+
+flatten_dfc(.x)
 }
 \arguments{
 \item{.x}{A list of flatten. The contents of the list can be anything for
@@ -30,13 +34,17 @@ type for the other functions.}
 giving either the name or the index of the data frame.}
 }
 \value{
-\code{flatten()} returns a list, \code{flatten_lgl} a logical
-  vector, \code{flatten_int} an integer vector, \code{flatten_dbl} a
-  double vector, and \code{flatten_chr} a character vector.
+\code{flatten()} returns a list, \code{flatten_lgl()} a logical
+vector, \code{flatten_int()} an integer vector, \code{flatten_dbl()} a
+double vector, and \code{flatten_chr()} a character vector.
+
+\code{flatten_dfr()} and \code{flatten_dfc()} return data frames created by
+row-binding and column-binding respectively. They require dplyr to
+be installed.
 }
 \description{
 These functions remove a level hierarchy from a list. They are similar to
-\code{\link{unlist}}, only ever remove a single layer of hierarchy, and
+\code{\link[=unlist]{unlist()}}, only ever remove a single layer of hierarchy, and
 are type-stable so you always know what the type of the output is.
 }
 \examples{

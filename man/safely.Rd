@@ -4,6 +4,7 @@
 \alias{safely}
 \alias{quietly}
 \alias{possibly}
+\alias{auto_browse}
 \title{Capture side effects.}
 \usage{
 safely(.f, otherwise = NULL, quiet = TRUE)
@@ -11,22 +12,30 @@ safely(.f, otherwise = NULL, quiet = TRUE)
 quietly(.f)
 
 possibly(.f, otherwise, quiet = TRUE)
+
+auto_browse(.f)
 }
 \arguments{
 \item{.f}{A function, formula, or atomic vector.
 
-  If a \strong{function}, it is used as is.
+If a \strong{function}, it is used as is.
 
-  If a \strong{formula}, e.g. \code{~ .x + 2}, it is converted to a
-  function with two arguments, \code{.x} or \code{.} and \code{.y}. This
-  allows you to create very compact anonymous functions with up to
-  two inputs.
+If a \strong{formula}, e.g. \code{~ .x + 2}, it is converted to a function. There
+are three ways to refer to the arguments:
+\itemize{
+\item For a single argument function, use \code{.}
+\item For a two argument function, use \code{.x} and \code{.y}
+\item For more arguments, use \code{..1}, \code{..2}, \code{..3} etc
+}
 
-  If \strong{character} or \strong{integer vector}, e.g. \code{"y"}, it
-  is converted to an extractor function, \code{function(x) x[["y"]]}. To
-  index deeply into a nested list, use multiple values; \code{c("x", "y")}
-  is equivalent to \code{z[["x"]][["y"]]}. You can also set \code{.null}
-  to set a default to use instead of \code{NULL} for absent components.}
+This syntax allows you to create very compact anonymous functions.
+
+If \strong{character vector}, \strong{numeric vector}, or \strong{list}, it
+is converted to an extractor function. Character vectors index by name
+and numeric vectors index by position; use a list to index by position
+and name at different levels. Within a list, wrap strings in \code{get_attr()}
+to extract named attributes. If a component is not present, the value of
+\code{.default} will be returned.}
 
 \item{otherwise}{Default value to use when an error occurs.}
 
@@ -34,17 +43,20 @@ possibly(.f, otherwise, quiet = TRUE)
 as they occur?}
 }
 \value{
-\code{safe}: a list with components \code{result} and \code{error}.
-  One value is always \code{NULL}
+\code{safely}: wrapped function instead returns a list with
+components \code{result} and \code{error}. One value is always \code{NULL}.
 
-\code{outputs}: a list with components \code{result}, \code{output},
-  \code{messages} and \code{warnings}.
+\code{quietly}: wrapped function instead returns a list with components
+\code{result}, \code{output}, \code{messages} and \code{warnings}.
+
+\code{possibly}: wrapped function uses a default value (\code{otherwise})
+whenever an error occurs.
 }
 \description{
-These functions wrap functions so instead generating side effects through
-output, messages, warnings, and errors, they instead return enchanced
-output. They are all adverbs because they modify the action of a
-verb (a function).
+These functions wrap functions so that instead of generating side effects
+through printed output, messages, warnings, and errors, they return enhanced
+output. They are all adverbs because they modify the action of a verb (a
+function).
 }
 \examples{
 safe_log <- safely(log)
@@ -66,4 +78,22 @@ list("a", 10, 100) \%>\%
 # To replace errors with a default value, use possibly().
 list("a", 10, 100) \%>\%
   map_dbl(possibly(log, NA_real_))
+
+# For interactive usage, auto_browse() is useful because it automatically
+# starts a browser() in the right place.
+f <- function(x) {
+  y <- 20
+  if (x > 5) {
+    stop("!")
+  } else {
+    x
+  }
+}
+if (interactive()) {
+  map(1:6, auto_browse(f))
+}
+
+# It doesn't make sense to use auto_browse with primitive functions,
+# because they are implemented in C so there's no useful environment
+# for you to interact with.
 }

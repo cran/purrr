@@ -1,15 +1,15 @@
 #' Match/validate a set of conditions for an object and continue with the action
 #' associated with the first valid match.
 #'
-#' \code{when} is a flavour of pattern matching (or an if-else abstraction) in
+#' `when` is a flavour of pattern matching (or an if-else abstraction) in
 #' which a value is matched against a sequence of condition-action sets. When a
 #' valid match/condition is found the action is executed and the result of the
 #' action is returned.
 #'
-#' @param .   the value to match agaist
+#' @param .   the value to match against
 #' @param ... formulas; each containing a condition as LHS and an action as RHS.
 #'   named arguments will define additional values.
-#'
+#' @keywords internal
 #' @return The value resulting from the action of the first valid
 #'   match/condition is returned. If no matches are found, and no default is
 #'   given, NULL will be returned.
@@ -17,16 +17,16 @@
 # @details condition-action sets are written as formulas with conditions as
 #   left-hand sides and actions as right-hand sides. A formula with only a
 #   right-hand will be treated as a condition which is always satisfied. For
-#   such a default case one can also omit the \code{~} symbol, but note that its
+#   such a default case one can also omit the `~` symbol, but note that its
 #   value will then be evaluated. Any named argument will be made available in
 #   all conditions and actions, which is useful in avoiding repeated temporary
 #   computations or temporary assignments.
 #
-#' Validity of the conditions are tested with \code{isTRUE}, or equivalently
-#' with \code{identical(condition, TRUE)}.
+#' Validity of the conditions are tested with `isTRUE`, or equivalently
+#' with `identical(condition, TRUE)`.
 #' In other words conditions resulting in more than one logical will never
 #' be valid. Note that the input value is always treated as a single object,
-#' as opposed to the \code{ifelse} function.
+#' as opposed to the `ifelse` function.
 #'
 #' @examples
 #' 1:10 %>%
@@ -56,8 +56,7 @@
 #'   when(nrow(.) < 10 ~ .,
 #'        ~ stop("Expected fewer than 10 rows."))
 #' @export
-when <- function(., ...)
-{
+when <- function(., ...) {
   dots   <- list(...)
   names  <- names(dots)
   named  <- if (is.null(names)) rep(FALSE, length(dots)) else names != ""
@@ -79,11 +78,10 @@ when <- function(., ...)
       env[[names[i]]] <- dots[[i]]
 
   result <- NULL
-  for (i in which(!named))
-  {
+  for (i in which(!named)) {
     if (is_formula[i]) {
       action <- length(dots[[i]])
-      if (action == 2 || isTRUE(eval(dots[[i]][[2]], env, env))) {
+      if (action == 2 || is_true(eval(dots[[i]][[2]], env, env))) {
         result <- eval(dots[[i]][[action]], env, env)
         break
       }

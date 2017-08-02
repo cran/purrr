@@ -1,60 +1,144 @@
 #' Reduce a list to a single value by iteratively applying a binary function.
 #'
-#' \code{reduce} combines from the left, \code{reduce_right} combines from
-#' the right.
+#' `reduce()` combines from the left, `reduce_right()` combines from
+#' the right. `reduce(list(x1, x2, x3), f)` is equivalent to
+#' `f(f(x1, x2), x3)`; `reduce_right(list(x1, x2, x3), f)` is equivalent to
+#' `f(f(x3, x2), x1)`.
 #'
 #' @inheritParams map
-#' @param .f A two-argument function.
+#' @param .y For `reduce2()`, an additional argument that is passed to
+#'   `.f`. If `init` is not set, `.y` should be 1 element shorter than
+#'   `.x`.
+#' @param .f For `reduce()`, a 2-argument function. The function will be
+#'   passed the accumulated value as the first argument and the "next" value
+#'   as the second argument.
+#'
+#'   For `reduce2()`, a 3-argument function. The function will be passed the
+#'   accumulated value as the first argument, the next value of `.x` as the
+#'   second argument, and the next value of `.y` as the third argument.
+#'
 #' @param .init If supplied, will be used as the first value to start
 #'   the accumulation, rather than using \code{x[[1]]}. This is useful if
-#'   you want to ensure that \code{reduce} returns the correct value when
-#'   \code{.x} is \code{\link{is_empty}()}.
+#'   you want to ensure that `reduce` returns a correct value when `.x`
+#'   is empty. If missing, and `x` is empty, will throw an error.
 #' @export
 #' @examples
 #' 1:3 %>% reduce(`+`)
 #' 1:10 %>% reduce(`*`)
 #'
-#' 5 %>%
-#'   replicate(sample(10, 5), simplify = FALSE) %>%
-#'   reduce(intersect)
+#' paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
+#' letters[1:4] %>% reduce(paste2)
+#' letters[1:4] %>% reduce2(c("-", ".", "-"), paste2)
+#'
+#' samples <- rerun(2, sample(10, 5))
+#' samples
+#' reduce(samples, union)
+#' reduce(samples, intersect)
 #'
 #' x <- list(c(0, 1), c(2, 3), c(4, 5))
 #' x %>% reduce(c)
 #' x %>% reduce_right(c)
 #' # Equivalent to:
 #' x %>% rev() %>% reduce(c)
-#'
-#' # Use init when you want reduce to return a consistent type when
-#' # given an empty lists
-#' list() %>% reduce(`+`)
-#' list() %>% reduce(`+`, .init = 0)
 reduce <- function(.x, .f, ..., .init) {
-  .f <- as_function(.f, ...)
-
-  f <- function(x, y) {
-    .f(x, y, ...)
-  }
-
-  Reduce(f, .x, init = .init)
+  reduce_impl(.x, .f, ..., .init = .init, .left = TRUE)
 }
 
 #' @export
 #' @rdname reduce
 reduce_right <- function(.x, .f, ..., .init) {
-  .f <- as_function(.f, ...)
+  reduce_impl(.x, .f, ..., .init = .init, .left = FALSE)
+}
 
-  # Note the order of arguments is switched
-  f <- function(x, y) {
-    .f(y, x, ...)
+#' @export
+#' @rdname reduce
+reduce2 <- function(.x, .y, .f, ..., .init) {
+  reduce2_impl(.x, .y, .f, ..., .init = .init, .left = TRUE)
+}
+
+#' @export
+#' @rdname reduce
+reduce2_right <- function(.x, .y, .f, ..., .init) {
+  reduce2_impl(.x, .f, .y, ..., .init = .init, .left = FALSE)
+}
+
+reduce2_impl <- function(.x, .y, .f, ..., .init, .left = TRUE) {
+  out <- reduce_init(.x, .init, left = .left)
+  x_idx <- reduce_index(.x, .init, left = .left)
+  y_idx <- reduce_index(.y, NULL, left = .left)
+
+  if (length(x_idx) != length(y_idx)) {
+    stop("`.y` does not have length ", length(x_idx))
   }
 
-  Reduce(f, .x, init = .init, right = TRUE)
+  .f <- as_mapper(.f, ...)
+  for (i in seq_along(x_idx)) {
+    x_i <- x_idx[[i]]
+    y_i <- y_idx[[i]]
+
+    out <- .f(out, .x[[x_i]], .y[[y_i]], ...)
+  }
+
+  out
+}
+
+
+reduce_impl <- function(.x, .f, ..., .init, .left = TRUE) {
+  out <- reduce_init(.x, .init, left = .left)
+  idx <- reduce_index(.x, .init, left = .left)
+
+  .f <- as_mapper(.f, ...)
+  for (i in idx) {
+    out <- .f(out, .x[[i]], ...)
+  }
+
+  out
+}
+
+reduce_init <- function(x, init, left = TRUE) {
+  if (!missing(init)) {
+    init
+  } else {
+    if (is_empty(x)) {
+      stop("`.x` is empty, and no `.init` supplied", call. = FALSE)
+    } else if (left) {
+      x[[1]]
+    } else {
+      x[[length(x)]]
+    }
+  }
+}
+
+reduce_index <- function(x, init, left = TRUE) {
+  n <- length(x)
+
+  if (!missing(init)) {
+    if (left) {
+      seq_len(n)
+    } else {
+      rev(seq_len(n))
+    }
+  } else {
+    if (left) {
+      seq_len2(2L, n)
+    } else {
+      rev(seq_len2(1L, n - 1L))
+    }
+  }
+}
+
+seq_len2 <- function(start, end) {
+  if (start > end) {
+    return(integer(0))
+  }
+
+  start:end
 }
 
 #' Accumulate recursive folds across a list
 #'
-#' \code{accumulate} applies a function recursively over a list from the left, while
-#' \code{accumulate_right} applies the function from the right. Unlike \code{reduce}
+#' `accumulate` applies a function recursively over a list from the left, while
+#' `accumulate_right` applies the function from the right. Unlike `reduce`
 #' both functions keep the intermediate results.
 #'
 #' @inheritParams reduce
@@ -65,6 +149,13 @@ reduce_right <- function(.x, .f, ..., .init) {
 #'
 #' # From Haskell's scanl documentation
 #' 1:10 %>% accumulate(max, .init = 5)
+#'
+#' # Understanding the arguments .x and .y when .f
+#' # is a lambda function
+#' # .x is the accumulating value
+#' 1:10 %>% accumulate(~ .x)
+#' # .y is element in the list
+#' 1:10 %>% accumulate(~ .y)
 #'
 #' # Simulating stochastic processes with drift
 #' \dontrun{
@@ -80,7 +171,7 @@ reduce_right <- function(.x, .f, ..., .init) {
 #'     ggtitle("Simulations of a random walk with drift")
 #' }
 accumulate <- function(.x, .f, ..., .init) {
-  .f <- as_function(.f, ...)
+  .f <- as_mapper(.f, ...)
 
   f <- function(x, y) {
     .f(x, y, ...)
@@ -92,7 +183,7 @@ accumulate <- function(.x, .f, ..., .init) {
 #' @export
 #' @rdname accumulate
 accumulate_right <- function(.x, .f, ..., .init) {
-  .f <- as_function(.f, ...)
+  .f <- as_mapper(.f, ...)
 
   # Note the order of arguments is switched
   f <- function(x, y) {

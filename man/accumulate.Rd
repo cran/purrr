@@ -12,14 +12,20 @@ accumulate_right(.x, .f, ..., .init)
 \arguments{
 \item{.x}{A list or atomic vector.}
 
-\item{.f}{A two-argument function.}
+\item{.f}{For \code{reduce()}, a 2-argument function. The function will be
+passed the accumulated value as the first argument and the "next" value
+as the second argument.
+
+For \code{reduce2()}, a 3-argument function. The function will be passed the
+accumulated value as the first argument, the next value of \code{.x} as the
+second argument, and the next value of \code{.y} as the third argument.}
 
 \item{...}{Additional arguments passed on to \code{.f}.}
 
 \item{.init}{If supplied, will be used as the first value to start
 the accumulation, rather than using \code{x[[1]]}. This is useful if
-you want to ensure that \code{reduce} returns the correct value when
-\code{.x} is \code{\link{is_empty}()}.}
+you want to ensure that \code{reduce} returns a correct value when \code{.x}
+is empty. If missing, and \code{x} is empty, will throw an error.}
 }
 \description{
 \code{accumulate} applies a function recursively over a list from the left, while
@@ -32,6 +38,13 @@ both functions keep the intermediate results.
 
 # From Haskell's scanl documentation
 1:10 \%>\% accumulate(max, .init = 5)
+
+# Understanding the arguments .x and .y when .f
+# is a lambda function
+# .x is the accumulating value
+1:10 \%>\% accumulate(~ .x)
+# .y is element in the list
+1:10 \%>\% accumulate(~ .y)
 
 # Simulating stochastic processes with drift
 \dontrun{

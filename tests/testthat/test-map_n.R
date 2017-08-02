@@ -9,6 +9,14 @@ test_that("elements must be same length", {
   expect_error(pmap(list(1:2, 1:3), identity), "has length 2")
 })
 
+test_that("handles any length 0 input", {
+  expect_equal(pmap(list(list(), list(), list()), ~ 1), list())
+  expect_equal(pmap(list(NULL, NULL, NULL), ~ 1), list())
+
+  expect_equal(pmap(list(list(), list(), 1:10), ~ 1), list())
+  expect_equal(pmap(list(NULL, NULL, 1:10), ~ 1), list())
+})
+
 test_that("length 1 elemetns are recycled", {
   out <- pmap(list(1:2, 1), c)
   expect_equal(out, list(c(1, 1), c(2, 1)))
@@ -38,5 +46,15 @@ test_that("outputs are suffixes have correct type", {
   expect_is(pmap_int(list(x), length), "integer")
   expect_is(pmap_dbl(list(x), mean), "numeric")
   expect_is(pmap_chr(list(x), paste), "character")
-  expect_is(pmap_df(list(x), as.data.frame), "data.frame")
+  expect_is(pmap_dfr(list(x), as.data.frame), "data.frame")
+  expect_is(pmap_dfc(list(x), as.data.frame), "data.frame")
+})
+
+test_that("pmap on data frames performs rowwise operations", {
+  mtcars2 <- mtcars[c("mpg", "cyl")]
+  expect_length(pmap(mtcars2, paste), nrow(mtcars))
+  expect_is(pmap_lgl(mtcars2, function(mpg, cyl) mpg > cyl), "logical")
+  expect_is(pmap_int(mtcars2, function(mpg, cyl) as.integer(cyl)), "integer")
+  expect_is(pmap_dbl(mtcars2, function(mpg, cyl) mpg + cyl), "numeric")
+  expect_is(pmap_chr(mtcars2, paste), "character")
 })

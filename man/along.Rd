@@ -15,8 +15,11 @@ rep_along(x, y)
 
 \item{y}{Values to repeat.}
 }
+\value{
+An vectors the same length as \code{.x}.
+}
 \description{
-These functions take the idea of \code{\link{seq_along}} and generalise
+These functions take the idea of \code{\link[=seq_along]{seq_along()}} and generalise
 it to creating lists (\code{list_along}) and repeating values
 (\code{rep_along}).
 }
@@ -26,3 +29,4 @@ rep_along(x, 1:2)
 rep_along(x, 1)
 list_along(x)
 }
+\keyword{internal}

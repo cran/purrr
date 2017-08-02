@@ -2,7 +2,7 @@
 #'
 #' @inheritParams map_if
 #' @inheritParams map
-#' @return Either \code{TRUE} or \code{FALSE}.
+#' @return A logical vector of length 1.
 #' @export
 #' @examples
 #' x <- list(0, 1, TRUE)
@@ -13,9 +13,11 @@
 #' y %>% every(is.numeric)
 #' y %>% every(is.integer)
 every <- function(.x, .p, ...) {
-  .p <- as_function(.p, ...)
+  .p <- as_mapper(.p, ...)
   for (i in seq_along(.x)) {
-    if (!isTRUE(.p(.x[[i]], ...))) return(FALSE)
+    val <- .p(.x[[i]], ...)
+    if (is_false(val)) return(FALSE)
+    if (anyNA(val)) return(NA)
   }
   TRUE
 }
@@ -23,9 +25,11 @@ every <- function(.x, .p, ...) {
 #' @export
 #' @rdname every
 some <- function(.x, .p, ...) {
-  .p <- as_function(.p, ...)
+  .p <- as_mapper(.p, ...)
   for (i in seq_along(.x)) {
-    if (isTRUE(.p(.x[[i]], ...))) return(TRUE)
+    val <- .p(.x[[i]], ...)
+    if (is_true(val)) return(TRUE)
+    if (anyNA(val)) return(NA)
   }
   FALSE
 }

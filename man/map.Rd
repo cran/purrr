@@ -2,15 +2,23 @@
 % Please edit documentation in R/map.R
 \name{map}
 \alias{map}
+\alias{map_if}
+\alias{map_at}
 \alias{map_lgl}
 \alias{map_chr}
 \alias{map_int}
 \alias{map_dbl}
+\alias{map_dfr}
 \alias{map_df}
+\alias{map_dfc}
 \alias{walk}
 \title{Apply a function to each element of a vector}
 \usage{
 map(.x, .f, ...)
+
+map_if(.x, .p, .f, ...)
+
+map_at(.x, .at, .f, ...)
 
 map_lgl(.x, .f, ...)
 
@@ -20,7 +28,9 @@ map_int(.x, .f, ...)
 
 map_dbl(.x, .f, ...)
 
-map_df(.x, .f, ..., .id = NULL)
+map_dfr(.x, .f, ..., .id = NULL)
+
+map_dfc(.x, .f, ...)
 
 walk(.x, .f, ...)
 }
@@ -29,49 +39,70 @@ walk(.x, .f, ...)
 
 \item{.f}{A function, formula, or atomic vector.
 
-  If a \strong{function}, it is used as is.
+If a \strong{function}, it is used as is.
 
-  If a \strong{formula}, e.g. \code{~ .x + 2}, it is converted to a
-  function with two arguments, \code{.x} or \code{.} and \code{.y}. This
-  allows you to create very compact anonymous functions with up to
-  two inputs.
+If a \strong{formula}, e.g. \code{~ .x + 2}, it is converted to a function. There
+are three ways to refer to the arguments:
+\itemize{
+\item For a single argument function, use \code{.}
+\item For a two argument function, use \code{.x} and \code{.y}
+\item For more arguments, use \code{..1}, \code{..2}, \code{..3} etc
+}
 
-  If \strong{character} or \strong{integer vector}, e.g. \code{"y"}, it
-  is converted to an extractor function, \code{function(x) x[["y"]]}. To
-  index deeply into a nested list, use multiple values; \code{c("x", "y")}
-  is equivalent to \code{z[["x"]][["y"]]}. You can also set \code{.null}
-  to set a default to use instead of \code{NULL} for absent components.}
+This syntax allows you to create very compact anonymous functions.
+
+If \strong{character vector}, \strong{numeric vector}, or \strong{list}, it
+is converted to an extractor function. Character vectors index by name
+and numeric vectors index by position; use a list to index by position
+and name at different levels. Within a list, wrap strings in \code{get_attr()}
+to extract named attributes. If a component is not present, the value of
+\code{.default} will be returned.}
 
 \item{...}{Additional arguments passed on to \code{.f}.}
+
+\item{.p}{A single predicate function, a formula describing such a
+predicate function, or a logical vector of the same length as \code{.x}.
+Alternatively, if the elements of \code{.x} are themselves lists of
+objects, a string indicating the name of a logical element in the
+inner lists. Only those elements where \code{.p} evaluates to
+\code{TRUE} will be modified.}
+
+\item{.at}{A character vector of names or a numeric vector of
+positions. Only those elements corresponding to \code{.at} will be
+modified.}
 
 \item{.id}{If not \code{NULL} a variable with this name will be created
 giving either the name or the index of the data frame.}
 }
 \value{
-\code{map()} always returns a list.
+All functions return a vector the same length as \code{.x}.
 
-  \code{map_lgl()} returns a logical vector, \code{map_int()} an integer
-  vector, \code{map_dbl()}, a double vector, \code{map_chr()}, a character
-  vector. The output of \code{.f} will be automatically typed upwards,
-  e.g. logical -> integer -> double -> character.
+\code{map()} returns a list, \code{map_lgl()} a logical vector, \code{map_int()} an
+integer vector, \code{map_dbl()} a double vector, and \code{map_chr()} a character
+vector. The output of \code{.f} will be automatically typed upwards,
+e.g. logical -> integer -> double -> character.
 
-  \code{walk()} (invisibly) the input \code{.x}. It's called primarily for
-  its side effects, but this makes it easier to combine in a pipe.
+\code{walk()} returns the input \code{.x} (invisibly). This makes it easy to
+use in pipe.
 }
 \description{
-\code{map()} returns the transformed input; \code{walk()} calls
-\code{.f} for its side-effect and returns the original
-input. \code{map()} returns a list or a data frame; \code{map_lgl()},
-\code{map_int()}, \code{map_dbl()} and \code{map_chr()} return vectors
-of the corresponding type (or die trying); \code{map_df()} returns
-a data frame by row-binding the individual elements.
+The map functions transform their input by applying a function to
+each element and returning a vector the same length as the input.
+\itemize{
+\item \code{map()}, \code{map_if()} and \code{map_at()} always return a list. See the
+\code{\link[=modify]{modify()}} family for versions that return an object of the same
+type as the input.
+
+The \code{_if} and \code{_at} variants take a predicate function \code{.p} that
+determines which elements of \code{.x} are transformed with \code{.f}.
+transform.
+\item \code{map_lgl()}, \code{map_int()}, \code{map_dbl()} and \code{map_chr()} return
+vectors of the corresponding type (or die trying).
+\item \code{map_dfr()} and \code{map_dfc()} return data frames created by
+row-binding and column-binding respectively. They require dplyr
+to be installed.
+\item \code{walk()} calls \code{.f} for its side-effect and returns the input \code{.x}.
 }
-\details{
-Note that \code{map()} understands data frames, including grouped
-data frames. It can be much faster than
-\code{\link[dplyr:summarise_each]{mutate_each()}} when your data frame has many
-columns. However, \code{map()} will be slower for the more common case of many
-groups with functions that dplyr knows how to translate to C++.
 }
 \examples{
 1:10 \%>\%
@@ -85,6 +116,26 @@ groups with functions that dplyr knows how to translate to C++.
 # Or a formula
 1:10 \%>\%
   map(~ rnorm(10, .x))
+
+# Extract by name or position
+# .default specifies value for elements that are missing or NULL
+l1 <- list(list(a = 1L), list(a = NULL, b = 2L), list(b = 3L))
+l1 \%>\% map("a", .default = "???")
+l1 \%>\% map_int("b", .default = NA)
+l1 \%>\% map_int(2, .default = NA)
+
+# Supply multiple values to index deeply into a list
+l2 <- list(
+  list(num = 1:3,     letters[1:3]),
+  list(num = 101:103, letters[4:6]),
+  list()
+)
+l2 \%>\% map(c(2, 2))
+
+# Use a list to build an extractor that mixes numeric indices and names,
+# and .default to provide a default value if the element does not exist
+l2 \%>\% map(list("num", 3))
+l2 \%>\% map_int(list("num", 3), .default = NA)
 
 # A more realistic example: split a data frame into pieces, fit a
 # model to each piece, summarise and extract R^2
@@ -110,6 +161,7 @@ mtcars \%>\%
 # the broom package)
 }
 \seealso{
-\code{\link{map2}()} and \code{\link{pmap}()} to map over multiple
-  inputs simulatenously
+Other map variants: \code{\link{imap}},
+  \code{\link{invoke}}, \code{\link{lmap}},
+  \code{\link{map2}}, \code{\link{modify}}
 }

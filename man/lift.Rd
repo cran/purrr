@@ -38,8 +38,11 @@ instead.}
 
 \item{.type}{A vector mold or a string describing the type of the
 input vectors. The latter can be any of the types returned by
-\code{\link{typeof}()}, or "numeric" as a shorthand for either
+\code{\link[=typeof]{typeof()}}, or "numeric" as a shorthand for either
 "double" or "integer".}
+}
+\value{
+A function.
 }
 \description{
 \code{lift_xy()} is a composition helper. It helps you compose
@@ -57,25 +60,25 @@ functional tools. Since this is such a common function,
 }
 \section{from ... to \code{list(...)} or \code{c(...)}}{
 
-  Here dots should be taken here in a figurative way. The lifted
-  functions does not need to take dots per se. The function is
-  simply wrapped a function in \code{\link{do.call}()}, so instead
-  of taking multiple arguments, it takes a single named list or
-  vector which will be interpreted as its arguments.  This is
-  particularly useful when you want to pass a row of a data frame
-  or a list to a function and don't want to manually pull it apart
-  in your function.
+Here dots should be taken here in a figurative way. The lifted
+functions does not need to take dots per se. The function is
+simply wrapped a function in \code{\link[=do.call]{do.call()}}, so instead
+of taking multiple arguments, it takes a single named list or
+vector which will be interpreted as its arguments.  This is
+particularly useful when you want to pass a row of a data frame
+or a list to a function and don't want to manually pull it apart
+in your function.
 }
 
 \section{from \code{c(...)} to \code{list(...)} or \code{...}}{
 
-  These factories allow a function taking a vector to take a list
-  or dots instead. The lifted function internally transforms its
-  inputs back to an atomic vector. purrr does not obey the usual R
-  casting rules (e.g., \code{c(1, "2")} produces a character
-  vector) and will produce an error if the types are not
-  compatible. Additionally, you can enforce a particular vector
-  type by supplying \code{.type}.
+These factories allow a function taking a vector to take a list
+or dots instead. The lifted function internally transforms its
+inputs back to an atomic vector. purrr does not obey the usual R
+casting rules (e.g., \code{c(1, "2")} produces a character
+vector) and will produce an error if the types are not
+compatible. Additionally, you can enforce a particular vector
+type by supplying \code{.type}.
 }
 
 \section{from list(...) to c(...) or ...}{
@@ -143,12 +146,12 @@ lift_vd(tolower, .type = character(1))("this", "is", "ok")
 
 ### Lifting from list(...) to c(...) or ...
 
-# cross_n() normally takes a list of elements and returns their
+# cross() normally takes a list of elements and returns their
 # cartesian product. By lifting it you can supply the arguments as
 # if it was a function taking dots:
-cross <- lift_ld(cross_n)
-out1 <- cross_n(list(a = 1:2, b = c("a", "b", "c")))
-out2 <- cross(a = 1:2, b = c("a", "b", "c"))
+cross_dots <- lift_ld(cross)
+out1 <- cross(list(a = 1:2, b = c("a", "b", "c")))
+out2 <- cross_dots(a = 1:2, b = c("a", "b", "c"))
 identical(out1, out2)
 
 # This kind of lifting is sometimes needed for function
@@ -160,7 +163,7 @@ mtcars \%>\% pmap(lift_ld(some, partial(`<`, 200)))
 
 # Default arguments for ..f can be specified in the call to
 # lift_ld()
-lift_ld(cross_n, .filter = `==`)(1:3, 1:3) \%>\% str()
+lift_ld(cross, .filter = `==`)(1:3, 1:3) \%>\% str()
 
 
 # Here is another function taking a list and that we can update to
@@ -176,5 +179,5 @@ letters \%>\% glue()           # fails because glue() expects a list}
 letters \%>\% lift_lv(glue)()  # succeeds
 }
 \seealso{
-\code{\link{invoke}()}
+\code{\link[=invoke]{invoke()}}
 }

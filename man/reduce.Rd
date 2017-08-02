@@ -3,44 +3,62 @@
 \name{reduce}
 \alias{reduce}
 \alias{reduce_right}
+\alias{reduce2}
+\alias{reduce2_right}
 \title{Reduce a list to a single value by iteratively applying a binary function.}
 \usage{
 reduce(.x, .f, ..., .init)
 
 reduce_right(.x, .f, ..., .init)
+
+reduce2(.x, .y, .f, ..., .init)
+
+reduce2_right(.x, .y, .f, ..., .init)
 }
 \arguments{
 \item{.x}{A list or atomic vector.}
 
-\item{.f}{A two-argument function.}
+\item{.f}{For \code{reduce()}, a 2-argument function. The function will be
+passed the accumulated value as the first argument and the "next" value
+as the second argument.
+
+For \code{reduce2()}, a 3-argument function. The function will be passed the
+accumulated value as the first argument, the next value of \code{.x} as the
+second argument, and the next value of \code{.y} as the third argument.}
 
 \item{...}{Additional arguments passed on to \code{.f}.}
 
 \item{.init}{If supplied, will be used as the first value to start
 the accumulation, rather than using \code{x[[1]]}. This is useful if
-you want to ensure that \code{reduce} returns the correct value when
-\code{.x} is \code{\link{is_empty}()}.}
+you want to ensure that \code{reduce} returns a correct value when \code{.x}
+is empty. If missing, and \code{x} is empty, will throw an error.}
+
+\item{.y}{For \code{reduce2()}, an additional argument that is passed to
+\code{.f}. If \code{init} is not set, \code{.y} should be 1 element shorter than
+\code{.x}.}
 }
 \description{
-\code{reduce} combines from the left, \code{reduce_right} combines from
-the right.
+\code{reduce()} combines from the left, \code{reduce_right()} combines from
+the right. \code{reduce(list(x1, x2, x3), f)} is equivalent to
+\code{f(f(x1, x2), x3)}; \code{reduce_right(list(x1, x2, x3), f)} is equivalent to
+\code{f(f(x3, x2), x1)}.
 }
 \examples{
 1:3 \%>\% reduce(`+`)
 1:10 \%>\% reduce(`*`)
 
-5 \%>\%
-  replicate(sample(10, 5), simplify = FALSE) \%>\%
-  reduce(intersect)
+paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
+letters[1:4] \%>\% reduce(paste2)
+letters[1:4] \%>\% reduce2(c("-", ".", "-"), paste2)
+
+samples <- rerun(2, sample(10, 5))
+samples
+reduce(samples, union)
+reduce(samples, intersect)
 
 x <- list(c(0, 1), c(2, 3), c(4, 5))
 x \%>\% reduce(c)
 x \%>\% reduce_right(c)
 # Equivalent to:
 x \%>\% rev() \%>\% reduce(c)
-
-# Use init when you want reduce to return a consistent type when
-# given an empty lists
-list() \%>\% reduce(`+`)
-list() \%>\% reduce(`+`, .init = 0)
 }
