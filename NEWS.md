@@ -1,3 +1,9 @@
+# purrr 0.2.4
+
+* Fixes for R 3.1.
+
+* Fix PROTECTion problems in C code revealed by rchk.
+
 # purrr 0.2.3
 
 ## Breaking changes

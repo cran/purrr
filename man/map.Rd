@@ -54,7 +54,7 @@ This syntax allows you to create very compact anonymous functions.
 If \strong{character vector}, \strong{numeric vector}, or \strong{list}, it
 is converted to an extractor function. Character vectors index by name
 and numeric vectors index by position; use a list to index by position
-and name at different levels. Within a list, wrap strings in \code{get_attr()}
+and name at different levels. Within a list, wrap strings in \code{\link[=get-attr]{get-attr()}}
 to extract named attributes. If a component is not present, the value of
 \code{.default} will be returned.}
 
@@ -95,7 +95,6 @@ type as the input.
 
 The \code{_if} and \code{_at} variants take a predicate function \code{.p} that
 determines which elements of \code{.x} are transformed with \code{.f}.
-transform.
 \item \code{map_lgl()}, \code{map_int()}, \code{map_dbl()} and \code{map_chr()} return
 vectors of the corresponding type (or die trying).
 \item \code{map_dfr()} and \code{map_dfc()} return data frames created by
@@ -152,11 +151,11 @@ mtcars \%>\% map(sum)
 mtcars \%>\% map_dbl(sum)
 
 # If each element of the output is a data frame, use
-# map_df to row-bind them together:
+# map_dfr to row-bind them together:
 mtcars \%>\%
   split(.$cyl) \%>\%
   map(~ lm(mpg ~ wt, data = .x)) \%>\%
-  map_df(~ as.data.frame(t(as.matrix(coef(.)))))
+  map_dfr(~ as.data.frame(t(as.matrix(coef(.)))))
 # (if you also want to preserve the variable names see
 # the broom package)
 }

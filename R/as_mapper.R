@@ -21,7 +21,7 @@
 #'   If __character vector__, __numeric vector__, or __list__, it
 #'   is converted to an extractor function. Character vectors index by name
 #'   and numeric vectors index by position; use a list to index by position
-#'   and name at different levels. Within a list, wrap strings in `get_attr()`
+#'   and name at different levels. Within a list, wrap strings in [get-attr()]
 #'   to extract named attributes. If a component is not present, the value of
 #'   `.default` will be returned.
 #' @param .default,.null Optional additional argument for extractor functions
@@ -71,8 +71,8 @@ as_function <- function(...) {
 #'
 #' `pluck()` is often more readable than a mix of operators and
 #' accessors because it reads linearly and is free of syntactic
-#' cruft. Compare: `accessor(x[[1]])$foo` to `pluck(x, 1, accessor,
-#' "foo")`.
+#' cruft. Compare: \code{accessor(x[[1]])$foo} to `pluck(x, 1,
+#' accessor, "foo")`.
 #'
 #' Furthermore, `pluck()` never partial-matches unlike `$` which will
 #' select the `disp` object if you write `mtcars$di`.
