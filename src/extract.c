@@ -37,35 +37,26 @@ int find_offset(SEXP x, SEXP index, int i) {
 
     return val;
   } else if (TYPEOF(index) == STRSXP) {
-    SEXP names = PROTECT(Rf_getAttrib(x, R_NamesSymbol));
-    if (names == R_NilValue) {// vector doesn't have names
-      UNPROTECT(1);
+    SEXP names = Rf_getAttrib(x, R_NamesSymbol);
+    if (names == R_NilValue) // vector doesn't have names
       return -1;
-    }
 
-    if (STRING_ELT(index, 0) == NA_STRING) {
-      UNPROTECT(1);
+    if (STRING_ELT(index, 0) == NA_STRING)
       return -1;
-    }
 
     const char* val = Rf_translateCharUTF8(STRING_ELT(index, 0));
-    if (val[0] == '\0') { // "" matches nothing
-      UNPROTECT(1);
+    if (val[0] == '\0') // "" matches nothing
       return -1;
-    }
 
     for (int j = 0; j < Rf_length(names); ++j) {
       if (STRING_ELT(names, j) == NA_STRING)
         continue;
 
       const char* names_j = Rf_translateCharUTF8(STRING_ELT(names, j));
-      if (strcmp(names_j, val) == 0) {
-        UNPROTECT(1);
+      if (strcmp(names_j, val) == 0)
         return j;
-      }
 
     }
-    UNPROTECT(1);
     return -1;
   } else {
     Rf_errorcall(

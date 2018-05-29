@@ -1,7 +1,7 @@
-059324d1413bf11790eebfcc85afa281 *DESCRIPTION
+f1593e99baf4269eed690a897176975b *DESCRIPTION
 d32239bcb673463ab874e80d47fae504 *LICENSE
 b8b691d3ec56c2995d0eed7679ea7311 *NAMESPACE
-461cec5f26550acd7a7153013ca2d401 *NEWS.md
+5008373a408f698bcfd871b27df6d761 *NEWS.md
 d7434232639ef496b59a8863d526f4d5 *R/along.R
 48b5ad68f9c3a686e0e5d78499feeec7 *R/arrays.R
 dfc2fc05065d029dfbf897c83b347bd2 *R/as_mapper.R
@@ -37,9 +37,9 @@ f6afdc22a2adf80cede2a04ec0536488 *R/transpose.R
 b5ac331a5179d8aeae4b9e70cf003177 *R/utils.R
 3011f46c733271400987666dc871373d *R/when.R
 d00538240fc18c7c44547f5fb7ab04ad *README.md
-ba009ec33d50810392dbb70cf5b9b5dc *build/vignette.rds
+7f8d4017166791621e3620265015e625 *build/vignette.rds
 d0a12786bea51ec8b9d57563e6edacd8 *inst/doc/other-langs.Rmd
-bf6d0d378ac18f2b89f70758cd62aedc *inst/doc/other-langs.html
+6a93487e8c6c101952681d6d920ea844 *inst/doc/other-langs.html
 a1af9c3fdda713bc8e76b3049e14ec9c *man/accumulate.Rd
 31bf146d7265441ae4e72caa8c366f6c *man/along.Rd
 a5fb7427a5582b7f26fb4628b0285fb3 *man/array-coercion.Rd
@@ -86,7 +86,7 @@ ff2850c9a8f09363bbcb7439f1a55e70 *src/backports.c
 3a1ddd472e6b17c3679467cbd3409b10 *src/backports.h
 74a87782ba250e74b5d1830e8864fb84 *src/coerce.c
 6c50acdeb1bbbf26649665739256d211 *src/coerce.h
-badf005339bec33e87c784155c10f8a3 *src/extract.c
+b539ba8f02d7044977017fe3c61b5d9e *src/extract.c
 9106493550bd308acceb970096f8a587 *src/flatten.c
 829d93cfd9ef1890b0c06c402f5cb8ce *src/init.c
 a516fbb25d2cce016910df6950e1ff4a *src/map.c
@@ -103,7 +103,7 @@ ca3d5a991b34b91ec6cff68a6884cad1 *tests/testthat/test-cross.R
 c548d3237286977e949b2b665b8a5792 *tests/testthat/test-depth.R
 a22e930c9691c0655ba9c5fe94866adc *tests/testthat/test-every-some.R
 14532ea09ed8dfca0d19e65a4f1d7c41 *tests/testthat/test-find-position.R
-6857d64342f75696d507790e01efef80 *tests/testthat/test-flatten.R
+434f264a4bec2cb4157d551ecba6456d *tests/testthat/test-flatten.R
 fb8adbe7e936c917da7db33858f2df4a *tests/testthat/test-head-tail.R
 d4c61639a083a3ec2dddc8a7cf632343 *tests/testthat/test-imap.R
 5ffc01118f1e0f07b9c0d90cfcdce1cb *tests/testthat/test-invoke.R
