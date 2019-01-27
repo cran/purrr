@@ -1,8 +1,8 @@
 #' Flatten a list of lists into a simple vector.
 #'
 #' These functions remove a level hierarchy from a list. They are similar to
-#' [unlist()], only ever remove a single layer of hierarchy, and
-#' are type-stable so you always know what the type of the output is.
+#' [unlist()], but they only ever remove a single layer of hierarchy and they
+#' are type-stable, so you always know what the type of the output is.
 #'
 #' @param .x A list of flatten. The contents of the list can be anything for
 #'   `flatten` (as a list is returned), but the contents must match the
@@ -56,7 +56,17 @@ flatten_chr <- function(.x) {
 
 #' @export
 #' @rdname flatten
+flatten_raw <- function(.x) {
+  .Call(vflatten_impl, .x, "raw")
+}
+
+#' @export
+#' @rdname flatten
 flatten_dfr <- function(.x, .id = NULL) {
+  if (!is_installed("dplyr")) {
+    abort("`flatten_dfr()` requires dplyr")
+  }
+
   res <- .Call(flatten_impl, .x)
   dplyr::bind_rows(res, .id = .id)
 }
@@ -64,6 +74,10 @@ flatten_dfr <- function(.x, .id = NULL) {
 #' @export
 #' @rdname flatten
 flatten_dfc <- function(.x) {
+  if (!is_installed("dplyr")) {
+    abort("`flatten_dfc()` requires dplyr")
+  }
+
   res <- .Call(flatten_impl, .x)
   dplyr::bind_cols(res)
 }

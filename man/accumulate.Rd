@@ -2,49 +2,160 @@
 % Please edit documentation in R/reduce.R
 \name{accumulate}
 \alias{accumulate}
-\alias{accumulate_right}
-\title{Accumulate recursive folds across a list}
+\alias{accumulate2}
+\title{Accumulate intermediate results of a vector reduction}
 \usage{
-accumulate(.x, .f, ..., .init)
+accumulate(.x, .f, ..., .init, .dir = c("forward", "backward"))
 
-accumulate_right(.x, .f, ..., .init)
+accumulate2(.x, .y, .f, ..., .init)
 }
 \arguments{
 \item{.x}{A list or atomic vector.}
 
-\item{.f}{For \code{reduce()}, a 2-argument function. The function will be
-passed the accumulated value as the first argument and the "next" value
-as the second argument.
+\item{.f}{For \code{accumulate()} \code{.f} is 2-argument function. The function will
+be passed the accumulated result or initial value as the first argument.
+The next value in sequence is passed as the second argument.
 
-For \code{reduce2()}, a 3-argument function. The function will be passed the
-accumulated value as the first argument, the next value of \code{.x} as the
-second argument, and the next value of \code{.y} as the third argument.}
+For \code{accumulate2()}, a 3-argument function. The
+function will be passed the accumulated result as the first
+argument. The next value in sequence from \code{.x} is passed as the second argument. The
+next value in sequence from \code{.y} is passed as the third argument.
 
-\item{...}{Additional arguments passed on to \code{.f}.}
+The accumulation terminates early if \code{.f} returns a value wrapped in
+a \code{\link[=done]{done()}}.}
+
+\item{...}{Additional arguments passed on to the mapped function.}
 
 \item{.init}{If supplied, will be used as the first value to start
-the accumulation, rather than using \code{x[[1]]}. This is useful if
+the accumulation, rather than using \code{.x[[1]]}. This is useful if
 you want to ensure that \code{reduce} returns a correct value when \code{.x}
-is empty. If missing, and \code{x} is empty, will throw an error.}
+is empty. If missing, and \code{.x} is empty, will throw an error.}
+
+\item{.dir}{The direction of accumulation as a string, one of
+\code{"forward"} (the default) or \code{"backward"}. See the section about
+direction below.}
+
+\item{.y}{For \code{accumulate2()} \code{.y} is the second argument of the pair. It
+needs to be 1 element shorter than the vector to be accumulated (\code{.x}).
+If \code{.init} is set, \code{.y} needs to be one element shorted than the
+concatenation of the initial value and \code{.x}.}
+}
+\value{
+A vector the same length of \code{.x} with the same names as \code{.x}.
+
+If \code{.init} is supplied, the length is extended by 1. If \code{.x} has
+names, the initial value is given the name \code{".init"}, otherwise
+the returned vector is kept unnamed.
+
+If \code{.dir} is \code{"forward"} (the default), the first element is the
+initial value (\code{.init} if supplied, or the first element of \code{.x})
+and the last element is the final reduced value. In case of a
+right accumulation, this order is reversed.
+
+The accumulation terminates early if \code{.f} returns a value wrapped
+in a \code{\link[=done]{done()}}. If the done box is empty, the last value is
+used instead and the result is one element shorter (but always
+includes the initial value, even when terminating at the first
+iteration).
 }
 \description{
-\code{accumulate} applies a function recursively over a list from the left, while
-\code{accumulate_right} applies the function from the right. Unlike \code{reduce}
-both functions keep the intermediate results.
+\code{accumulate()} sequentially applies a 2-argument function to elements of a
+vector. Each application of the function uses the initial value or result
+of the previous application as the first argument. The second argument is
+the next value of the vector. The results of each application are
+returned in a list. The accumulation can optionally terminate before
+processing the whole vector in response to a \code{done()} signal returned by
+the accumulation function.
+
+By contrast to \code{accumulate()}, \code{reduce()} applies a 2-argument function in
+the same way, but discards all results except that of the final function
+application.
+
+\code{accumulate2()} sequentially applies a function to elements of two lists, \code{.x} and \code{.y}.
 }
+\section{Life cycle}{
+
+
+\code{accumulate_right()} is soft-deprecated in favour of the \code{.dir}
+argument as of rlang 0.3.0. Note that the algorithm has
+slightly changed: the accumulated value is passed to the right
+rather than the left, which is consistent with a right reduction.
+}
+
+\section{Direction}{
+
+
+When \code{.f} is an associative operation like \code{+} or \code{c()}, the
+direction of reduction does not matter. For instance, reducing the
+vector \code{1:3} with the binary function \code{+} computes the sum \code{((1 + 2) + 3)} from the left, and the same sum \code{(1 + (2 + 3))} from the
+right.
+
+In other cases, the direction has important consequences on the
+reduced value. For instance, reducing a vector with \code{list()} from
+the left produces a left-leaning nested list (or tree), while
+reducing \code{list()} from the right produces a right-leaning list.
+}
+
 \examples{
-1:3 \%>\% accumulate(`+`)
-1:10 \%>\% accumulate_right(`*`)
+# With an associative operation, the final value is always the
+# same, no matter the direction. You'll find it in the last element for a
+# backward (left) accumulation, and in the first element for forward
+# (right) one:
+1:5 \%>\% accumulate(`+`)
+1:5 \%>\% accumulate(`+`, .dir = "backward")
 
-# From Haskell's scanl documentation
-1:10 \%>\% accumulate(max, .init = 5)
+# The final value is always equal to the equivalent reduction:
+1:5 \%>\% reduce(`+`)
 
-# Understanding the arguments .x and .y when .f
-# is a lambda function
-# .x is the accumulating value
-1:10 \%>\% accumulate(~ .x)
-# .y is element in the list
-1:10 \%>\% accumulate(~ .y)
+# It is easier to understand the details of the reduction with
+# `paste()`.
+accumulate(letters[1:5], paste, sep = ".")
+
+# Note how the intermediary reduced values are passed to the left
+# with a left reduction, and to the right otherwise:
+accumulate(letters[1:5], paste, sep = ".", .dir = "backward")
+
+# `accumulate2()` is a version of `accumulate()` that works with
+# 3-argument functions and one additional vector:
+paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
+letters[1:4] \%>\% accumulate(paste2)
+letters[1:4] \%>\% accumulate2(c("-", ".", "-"), paste2)
+
+
+# You can shortcircuit an accumulation and terminate it early by
+# returning a value wrapped in a done(). In the following example
+# we return early if the result-so-far, which is passed on the LHS,
+# meets a condition:
+paste3 <- function(out, input, sep = ".") {
+  if (nchar(out) > 4) {
+    return(done(out))
+  }
+  paste(out, input, sep = sep)
+}
+letters \%>\% accumulate(paste3)
+
+# Note how we get twice the same value in the accumulation. That's
+# because we have returned it twice. To prevent this, return an empty
+# done box to signal to accumulate() that it should terminate with the
+# value of the last iteration:
+paste3 <- function(out, input, sep = ".") {
+  if (nchar(out) > 4) {
+    return(done())
+  }
+  paste(out, input, sep = sep)
+}
+letters \%>\% accumulate(paste3)
+
+# Here the early return branch checks the incoming inputs passed on
+# the RHS:
+paste4 <- function(out, input, sep = ".") {
+  if (input == "f") {
+    return(done())
+  }
+  paste(out, input, sep = sep)
+}
+letters \%>\% accumulate(paste4)
+
 
 # Simulating stochastic processes with drift
 \dontrun{
@@ -54,9 +165,12 @@ library(ggplot2)
 rerun(5, rnorm(100)) \%>\%
   set_names(paste0("sim", 1:5)) \%>\%
   map(~ accumulate(., ~ .05 + .x + .y)) \%>\%
-  map_dfr(~ data_frame(value = .x, step = 1:100), .id = "simulation") \%>\%
+  map_dfr(~ tibble(value = .x, step = 1:100), .id = "simulation") \%>\%
   ggplot(aes(x = step, y = value)) +
     geom_line(aes(color = simulation)) +
     ggtitle("Simulations of a random walk with drift")
 }
+}
+\seealso{
+\code{\link[=reduce]{reduce()}} when you only need the final reduced value.
 }

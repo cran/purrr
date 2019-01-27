@@ -8,7 +8,7 @@
 \usage{
 lmap(.x, .f, ...)
 
-lmap_if(.x, .p, .f, ...)
+lmap_if(.x, .p, .f, ..., .else = NULL)
 
 lmap_at(.x, .at, .f, ...)
 }
@@ -17,7 +17,7 @@ lmap_at(.x, .at, .f, ...)
 
 \item{.f}{A function that takes and returns a list or data frame.}
 
-\item{...}{Additional arguments passed on to \code{.f}.}
+\item{...}{Additional arguments passed on to the mapped function.}
 
 \item{.p}{A single predicate function, a formula describing such a
 predicate function, or a logical vector of the same length as \code{.x}.
@@ -26,9 +26,14 @@ objects, a string indicating the name of a logical element in the
 inner lists. Only those elements where \code{.p} evaluates to
 \code{TRUE} will be modified.}
 
-\item{.at}{A character vector of names or a numeric vector of
-positions. Only those elements corresponding to \code{.at} will be
-modified.}
+\item{.else}{A function applied to elements of \code{.x} for which \code{.p}
+returns \code{FALSE}.}
+
+\item{.at}{A character vector of names, positive numeric vector of
+positions to include, or a negative numeric vector of positions to
+exlude. Only those elements corresponding to \code{.at} will be modified.
+If the \code{tidyselect} package is installed, you can use \code{vars()} and
+the \code{tidyselect} helpers to select elements.}
 }
 \value{
 If \code{.x} is a list, a list. If \code{.x} is a data
@@ -41,7 +46,7 @@ difference that they operate exclusively on functions that take
 \emph{and} return a list (or data frame). Thus, instead of mapping
 the elements of a list (as in \code{.x[[i]]}), they apply a
 function \code{.f} to each subset of size 1 of that list (as in
-\code{.x[i]}). We call those those elements \code{list-elements}).
+\code{.x[i]}). We call those elements \code{list-elements}).
 }
 \details{
 Mapping the list-elements \code{.x[i]} has several advantages. It
@@ -96,7 +101,7 @@ disjoin <- function(x, sep = "_") {
   })
 
   names(out) <- paste(name, levels(x), sep = sep)
-  tibble::as_tibble(out)
+  out
 }
 
 # Now, we are ready to map disjoin() on each categorical variable of a
@@ -109,3 +114,4 @@ Other map variants: \code{\link{imap}},
   \code{\link{invoke}}, \code{\link{map2}},
   \code{\link{map}}, \code{\link{modify}}
 }
+\concept{map variants}

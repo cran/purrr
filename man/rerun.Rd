@@ -13,16 +13,28 @@ rerun(.n, ...)
 }
 \value{
 A list of length \code{.n}. Each element of \code{...} will be
-re-run once for each \code{.n}. It
+re-run once for each \code{.n}.
 
 There is one special case: if there's a single unnamed input, the second
 level list will be dropped. In this case, \code{rerun(n, x)} behaves like
 \code{replicate(n, x, simplify = FALSE)}.
 }
 \description{
+\Sexpr[results=rd, stage=render]{purrr:::lifecycle("questioning")}
+
 This is a convenient way of generating sample data. It works similarly to
 \code{\link{replicate}(..., simplify = FALSE)}.
 }
+\section{Lifecycle}{
+
+
+\code{rerun()} is in the questioning lifecycle stage because we are no
+longer convinced NSE functions are a good fit for purrr. Also,
+\code{rerun(n, x)} can just as easily be expressed as \code{map(1:n, ~ x)}
+(with the added benefit of being passed the current index as
+argument to the lambda).
+}
+
 \examples{
 10 \%>\% rerun(rnorm(5))
 10 \%>\%

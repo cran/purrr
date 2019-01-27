@@ -6,6 +6,7 @@
 \alias{flatten_int}
 \alias{flatten_dbl}
 \alias{flatten_chr}
+\alias{flatten_raw}
 \alias{flatten_dfr}
 \alias{flatten_dfc}
 \alias{flatten_df}
@@ -21,6 +22,8 @@ flatten_dbl(.x)
 
 flatten_chr(.x)
 
+flatten_raw(.x)
+
 flatten_dfr(.x, .id = NULL)
 
 flatten_dfc(.x)
@@ -30,8 +33,12 @@ flatten_dfc(.x)
 \code{flatten} (as a list is returned), but the contents must match the
 type for the other functions.}
 
-\item{.id}{If not \code{NULL} a variable with this name will be created
-giving either the name or the index of the data frame.}
+\item{.id}{Either a string or \code{NULL}. If a string, the output will contain
+a variable with that name, storing either the name (if \code{.x} is named) or
+the index (if \code{.x} is unnamed) of the input. If \code{NULL}, the default, no
+variable will be created.
+
+Only applies to \code{_dfr} variant.}
 }
 \value{
 \code{flatten()} returns a list, \code{flatten_lgl()} a logical
@@ -44,8 +51,8 @@ be installed.
 }
 \description{
 These functions remove a level hierarchy from a list. They are similar to
-\code{\link[=unlist]{unlist()}}, only ever remove a single layer of hierarchy, and
-are type-stable so you always know what the type of the output is.
+\code{\link[=unlist]{unlist()}}, but they only ever remove a single layer of hierarchy and they
+are type-stable, so you always know what the type of the output is.
 }
 \examples{
 x <- rerun(2, sample(4))

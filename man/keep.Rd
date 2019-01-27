@@ -15,24 +15,25 @@ compact(.x, .p = identity)
 \arguments{
 \item{.x}{A list or vector.}
 
-\item{.p}{A single predicate function, a formula describing such a
-predicate function, or a logical vector of the same length as \code{.x}.
-Alternatively, if the elements of \code{.x} are themselves lists of
-objects, a string indicating the name of a logical element in the
-inner lists. Only those elements where \code{.p} evaluates to
-\code{TRUE} will be modified.}
+\item{.p}{For \code{keep()} and \code{discard()}, a predicate function. Only
+those elements where \code{.p} evaluates to \code{TRUE} will be kept or
+discarded.
+
+For \code{compact()}, a function that is applied to each element of
+\code{.x}. Only those elements where \code{.p} evaluates to an empty vector
+will be discarded.}
 
 \item{...}{Additional arguments passed on to \code{.p}.}
 }
 \description{
-\code{keep} and \code{discard} are opposites. \code{compact} is a handy
-wrapper that removes all elements that are \code{NULL}.
+\code{keep()} and \code{discard()} are opposites. \code{compact()} is a handy
+wrapper that removes all empty elements.
 }
 \details{
 These are usually called \code{select} or \code{filter} and \code{reject} or
-\code{drop}, but those names are already taken. \code{keep} is similar to
-\code{\link[=Filter]{Filter()}} but the argument order is more convenient, and the
-evaluation of \code{.f} is stricter.
+\code{drop}, but those names are already taken. \code{keep()} is similar to
+\code{\link[=Filter]{Filter()}}, but the argument order is more convenient, and the
+evaluation of the predicate function \code{.p} is stricter.
 }
 \examples{
 rep(10, 10) \%>\%
@@ -50,4 +51,8 @@ x <- rerun(5, a = rbernoulli(1), b = sample(10))
 x
 x \%>\% keep("a")
 x \%>\% discard("a")
+
+# compact() discards elements that are NULL or that have length zero
+list(a = "a", b = NULL, c = integer(0), d = NA, e = list()) \%>\%
+  compact()
 }

@@ -6,7 +6,7 @@
 #' \emph{and} return a list (or data frame). Thus, instead of mapping
 #' the elements of a list (as in \code{.x[[i]]}), they apply a
 #' function `.f` to each subset of size 1 of that list (as in
-#' `.x[i]`). We call those those elements `list-elements`).
+#' `.x[i]`). We call those elements `list-elements`).
 #'
 #' Mapping the list-elements `.x[i]` has several advantages. It
 #' makes it possible to work with functions that exclusively take a
@@ -68,7 +68,7 @@
 #'   })
 #'
 #'   names(out) <- paste(name, levels(x), sep = sep)
-#'   tibble::as_tibble(out)
+#'   out
 #' }
 #'
 #' # Now, we are ready to map disjoin() on each categorical variable of a
@@ -76,14 +76,21 @@
 #' iris %>% lmap_if(is.factor, disjoin)
 #' mtcars %>% lmap_at(c("cyl", "vs", "am"), disjoin)
 lmap <- function(.x, .f, ...) {
-  .x %>% lmap_at(seq_along(.x), .f, ...)
+  lmap_at(.x, seq_along(.x), .f, ...)
 }
 
 #' @rdname lmap
 #' @export
-lmap_if <- function(.x, .p, .f, ...) {
-  sel <- probe(.x, .p) %>% which()
-  .x %>% lmap_at(sel, .f, ...)
+lmap_if <- function(.x, .p, .f, ..., .else = NULL) {
+  sel <- probe(.x, .p)
+
+  .x <- lmap_at(.x, which(sel), .f, ...)
+
+  if (!is_null(.else)) {
+    .x <- lmap_at(.x, which(!sel), .else, ...)
+  }
+
+  .x
 }
 
 #' @rdname lmap
@@ -92,7 +99,9 @@ lmap_at <- function(.x, .at, .f, ...) {
   if (is_formula(.f)) {
     .f <- as_mapper(.f, ...)
   }
-  sel <- inv_which(.x, .at)
+
+  where <- at_selection(names(.x), .at)
+  sel <- inv_which(.x, where)
 
   out <- vector("list", length(.x))
   for (i in seq_along(.x)) {
@@ -106,5 +115,5 @@ lmap_at <- function(.x, .at, .f, ...) {
     out[[i]] <- res
   }
 
-  flatten(out) %>% maybe_as_data_frame(.x)
+  maybe_as_data_frame(flatten(out), .x)
 }

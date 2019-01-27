@@ -6,6 +6,7 @@
 \alias{map2_int}
 \alias{map2_dbl}
 \alias{map2_chr}
+\alias{map2_raw}
 \alias{map2_dfr}
 \alias{map2_dfc}
 \alias{map2_df}
@@ -15,6 +16,7 @@
 \alias{pmap_int}
 \alias{pmap_dbl}
 \alias{pmap_chr}
+\alias{pmap_raw}
 \alias{pmap_dfr}
 \alias{pmap_dfc}
 \alias{pmap_df}
@@ -30,6 +32,8 @@ map2_int(.x, .y, .f, ...)
 map2_dbl(.x, .y, .f, ...)
 
 map2_chr(.x, .y, .f, ...)
+
+map2_raw(.x, .y, .f, ...)
 
 map2_dfr(.x, .y, .f, ..., .id = NULL)
 
@@ -47,6 +51,8 @@ pmap_dbl(.l, .f, ...)
 
 pmap_chr(.l, .f, ...)
 
+pmap_raw(.l, .f, ...)
+
 pmap_dfr(.l, .f, ..., .id = NULL)
 
 pmap_dfc(.l, .f, ...)
@@ -57,7 +63,7 @@ pwalk(.l, .f, ...)
 \item{.x, .y}{Vectors of the same length. A vector of length 1 will
 be recycled.}
 
-\item{.f}{A function, formula, or atomic vector.
+\item{.f}{A function, formula, or vector (not necessarily atomic).
 
 If a \strong{function}, it is used as is.
 
@@ -71,20 +77,23 @@ are three ways to refer to the arguments:
 
 This syntax allows you to create very compact anonymous functions.
 
-If \strong{character vector}, \strong{numeric vector}, or \strong{list}, it
-is converted to an extractor function. Character vectors index by name
-and numeric vectors index by position; use a list to index by position
-and name at different levels. Within a list, wrap strings in \code{\link[=get-attr]{get-attr()}}
-to extract named attributes. If a component is not present, the value of
-\code{.default} will be returned.}
+If \strong{character vector}, \strong{numeric vector}, or \strong{list}, it is
+converted to an extractor function. Character vectors index by
+name and numeric vectors index by position; use a list to index
+by position and name at different levels. If a component is not
+present, the value of \code{.default} will be returned.}
 
-\item{...}{Additional arguments passed on to \code{.f}.}
+\item{...}{Additional arguments passed on to the mapped function.}
 
-\item{.id}{If not \code{NULL} a variable with this name will be created
-giving either the name or the index of the data frame.}
+\item{.id}{Either a string or \code{NULL}. If a string, the output will contain
+a variable with that name, storing either the name (if \code{.x} is named) or
+the index (if \code{.x} is unnamed) of the input. If \code{NULL}, the default, no
+variable will be created.
 
-\item{.l}{A list of lists. The length of \code{.l} determines the
-number of arguments that \code{.f} will be called with. List
+Only applies to \code{_dfr} variant.}
+
+\item{.l}{A list of vectors, such as a data frame. The length of \code{.l}
+determines the number of arguments that \code{.f} will be called with. List
 names will be used if present.}
 }
 \value{
@@ -96,13 +105,19 @@ If all input is length 0, the output will be length 0. If any
 input is length 1, it will be recycled to the length of the longest.
 }
 \description{
-These functions are variants of \code{map()} iterate over multiple
-arguments in parallel. \code{map2()} and \code{walk2()} are specialised for the two
-argument case; \code{pmap()} and \code{pwalk()} allow you to provide any number of
-arguments in a list.
+These functions are variants of \code{\link[=map]{map()}} that iterate over multiple arguments
+simultaneously. They are parallel in the sense that each input is processed
+in parallel with the others, not in the sense of multicore computing. They
+share the same notion of "parallel" as \code{\link[base:pmax]{base::pmax()}} and \code{\link[base:pmin]{base::pmin()}}.
+\code{map2()} and \code{walk2()} are specialised for the two argument case; \code{pmap()}
+and \code{pwalk()} allow you to provide any number of arguments in a list. Note
+that a data frame is a very important special case, in which case \code{pmap()}
+and \code{pwalk()} apply the function \code{.f} to each row. \code{map_dfr()}, \code{pmap_dfr()}
+and \code{map2_dfc()}, \code{pmap_dfc()} return data frames created by row-binding
+and column-binding respectively. They require dplyr to be installed.
 }
 \details{
-Note that arguments to be vectorised over come before the \code{.f},
+Note that arguments to be vectorised over come before \code{.f},
 and arguments that are supplied to every call come after \code{.f}.
 }
 \examples{
@@ -114,19 +129,19 @@ map2(x, y, ~ .x + .y)
 # Or just
 map2(x, y, `+`)
 
-# Split into pieces, fit model to each piece, then predict
-by_cyl <- mtcars \%>\% split(.$cyl)
-mods <- by_cyl \%>\% map(~ lm(mpg ~ wt, data = .))
-map2(mods, by_cyl, predict)
-
 pmap(list(x, y, z), sum)
 
 # Matching arguments by position
-pmap(list(x, y, z), function(a, b ,c) a / (b + c))
+pmap(list(x, y, z), function(a, b, c) a / (b + c))
 
 # Matching arguments by name
 l <- list(a = x, b = y, c = z)
 pmap(l, function(c, b, a) a / (b + c))
+
+# Split into pieces, fit model to each piece, then predict
+by_cyl <- mtcars \%>\% split(.$cyl)
+mods <- by_cyl \%>\% map(~ lm(mpg ~ wt, data = .))
+map2(mods, by_cyl, predict)
 
 # Vectorizing a function over multiple arguments
 df <- data.frame(
@@ -138,7 +153,7 @@ df <- data.frame(
 pmap(df, gsub)
 pmap_chr(df, gsub)
 
-## Use `...` to absorb unused components of input list .l
+# Use `...` to absorb unused components of input list .l
 df <- data.frame(
   x = 1:3 + 0.1,
   y = 3:1 - 0.1,
@@ -146,16 +161,38 @@ df <- data.frame(
 )
 plus <- function(x, y) x + y
 \dontrun{
-## this won't work
+# this won't work
 pmap(df, plus)
 }
-## but this will
+# but this will
 plus2 <- function(x, y, ...) x + y
 pmap_dbl(df, plus2)
 
+# The "p" for "parallel" in pmap() is the same as in base::pmin()
+# and base::pmax()
+df <- data.frame(
+  x = c(1, 2, 5),
+  y = c(5, 4, 8)
+)
+# all produce the same result
+pmin(df$x, df$y)
+map2_dbl(df$x, df$y, min)
+pmap_dbl(df, min)
+
+# If you want to bind the results of your function rowwise, use map2_dfr() or pmap_dfr()
+ex_fun <- function(arg1, arg2){
+col <- arg1 + arg2
+x <- as.data.frame(col)
+}
+arg1 <- seq(1, 10, by = 3)
+arg2 <- seq(2, 11, by = 3)
+df <- map2_dfr(arg1, arg2, ex_fun)
+# If instead you want to bind by columns, use map2_dfc() or pmap_dfc()
+df2 <- map2_dfc(arg1, arg2, ex_fun)
 }
 \seealso{
 Other map variants: \code{\link{imap}},
   \code{\link{invoke}}, \code{\link{lmap}},
   \code{\link{map}}, \code{\link{modify}}
 }
+\concept{map variants}

@@ -5,7 +5,7 @@
 #' generic. The default method forwards its arguments to
 #' [rlang::as_function()].
 #'
-#' @param .f A function, formula, or atomic vector.
+#' @param .f A function, formula, or vector (not necessarily atomic).
 #'
 #'   If a __function__, it is used as is.
 #'
@@ -18,12 +18,11 @@
 #'
 #'   This syntax allows you to create very compact anonymous functions.
 #'
-#'   If __character vector__, __numeric vector__, or __list__, it
-#'   is converted to an extractor function. Character vectors index by name
-#'   and numeric vectors index by position; use a list to index by position
-#'   and name at different levels. Within a list, wrap strings in [get-attr()]
-#'   to extract named attributes. If a component is not present, the value of
-#'   `.default` will be returned.
+#'   If __character vector__, __numeric vector__, or __list__, it is
+#'   converted to an extractor function. Character vectors index by
+#'   name and numeric vectors index by position; use a list to index
+#'   by position and name at different levels. If a component is not
+#'   present, the value of `.default` will be returned.
 #' @param .default,.null Optional additional argument for extractor functions
 #'   (i.e. when `.f` is character, integer, or list). Returned when
 #'   value is absent (does not exist) or empty (has length 0).
@@ -52,103 +51,28 @@ as_mapper <- function(.f, ...) {
 #' @rdname as_mapper
 #' @usage NULL
 as_function <- function(...) {
-  warning(
-    "`as_function()` is deprecated; please use `as_mapper()` or `rlang::as_function()` instead",
-    call. = FALSE
-  )
+  stop_defunct(paste_line(
+    "`as_function()` is defunct as of purrr 0.3.0.",
+    "Please use `as_mapper()` or `rlang::as_function()` instead"
+  ))
   as_mapper(...)
 }
 
-#' Pluck out a single an element from a vector or environment
-#'
-#' @description
-#'
-#' This is a generalised form of `[[` which allows you to index deeply
-#' and flexibly into data structures. It supports R standard accessors
-#' like integer positions and string names, and also accepts arbitrary
-#' accessor functions, i.e. functions that take an object and return
-#' some internal piece.
-#'
-#' `pluck()` is often more readable than a mix of operators and
-#' accessors because it reads linearly and is free of syntactic
-#' cruft. Compare: \code{accessor(x[[1]])$foo} to `pluck(x, 1,
-#' accessor, "foo")`.
-#'
-#' Furthermore, `pluck()` never partial-matches unlike `$` which will
-#' select the `disp` object if you write `mtcars$di`.
-#'
-#' @details
-#'
-#' Since it handles arbitrary accessor functions, `pluck()` is a type
-#' of composition operator. However, it is indexing-oriented thanks to
-#' its handling of strings and integers. By the same token is also
-#' explicit regarding the intent of the composition (e.g. extraction).
-#'
-#' @param .x A vector or environment
-#' @param ... A list of accessors for indexing into the object. Can be
-#'   an integer position, a string name, or an accessor function. If
-#'   the object being indexed is an S4 object, accessing it by name
-#'   will return the corresponding slot.
-#'
-#'   These dots [splice lists automatically][rlang::dots_splice]. This
-#'   means you can supply arguments and lists of arguments
-#'   indistinctly.
-#' @param .default Value to use if target is empty or absent.
-#' @keywords internal
 #' @export
-#' @examples
-#' # pluck() supports integer positions, string names, and functions.
-#' # Using functions, you can easily extend pluck(). Let's create a
-#' # list of data structures:
-#' obj1 <- list("a", list(1, elt = "foobar"))
-#' obj2 <- list("b", list(2, elt = "foobaz"))
-#' x <- list(obj1, obj2)
-#'
-#' # And now an accessor for these complex data structures:
-#' my_element <- function(x) x[[2]]$elt
-#'
-#' # The accessor can then be passed to pluck:
-#' pluck(x, 1, my_element)
-#' pluck(x, 2, my_element)
-#'
-#' # Even for this simple data structure, this is more readable than
-#' # the alternative form because it requires you to read both from
-#' # right-to-left and from left-to-right in different parts of the
-#' # expression:
-#' my_element(x[[1]])
-#'
-#'
-#' # This technique is used for plucking into attributes with
-#' # attr_getter(). It takes an attribute name and returns a function
-#' # to access the attribute:
-#' obj1 <- structure("obj", obj_attr = "foo")
-#' obj2 <- structure("obj", obj_attr = "bar")
-#' x <- list(obj1, obj2)
-#'
-#' # pluck() is handy for extracting deeply into a data structure.
-#' # Here we'll first extract by position, then by attribute:
-#' pluck(x, 1, attr_getter("obj_attr"))  # From first object
-#' pluck(x, 2, attr_getter("obj_attr"))  # From second object
-#'
-#'
-#' # pluck() splices lists of arguments automatically. The following
-#' # pluck is equivalent to the one above:
-#' idx <- list(1, attr_getter("obj_attr"))
-#' pluck(x, idx)
-pluck <- function(.x, ..., .default = NULL) {
-  .Call(extract_impl, .x, dots_splice(...), .default)
+as_mapper.default <- function(.f, ...) {
+  if (typeof(.f) %in% c("special", "builtin")) {
+    .f <- rlang::as_closure(.f)
+
+    # Workaround until fixed in rlang
+    if (is_reference(fn_env(.f), base_env())) {
+      environment(.f) <- global_env()
+    }
+
+    .f
+  } else {
+    rlang::as_function(.f)
+  }
 }
-
-#' @export
-#' @rdname pluck
-#' @param attr An attribute name as string.
-attr_getter <- function(attr) {
-  force(attr)
-  function(x) attr(x, attr)
-}
-
-
-# Vectors -----------------------------------------------------------------
 
 #' @export
 #' @rdname as_mapper
@@ -181,16 +105,47 @@ find_extract_default <- function(.null, .default) {
 }
 
 plucker <- function(i, default) {
-  # Interpolation creates a closure with a more readable source
-  expr_interp(function(x, ...)
-    pluck(x, !! i, .default = !! default)
+  x <- NULL # supress global variables check NOTE
+
+  new_function(
+    exprs(x = , ... = ),
+    expr(pluck(x, !!!i, .default = !!default)),
+    env = caller_env()
   )
 }
 
+as_predicate <- function(.fn, ..., .mapper, .deprecate = FALSE) {
+  if (.mapper) {
+    .fn <- as_mapper(.fn, ...)
+  }
 
-# Default -----------------------------------------------------------------
+  function(...) {
+    out <- .fn(...)
 
-#' @export
-as_mapper.default <- function(.f, ...) {
-  rlang::as_closure(.f)
+    if (!is_bool(out)) {
+      msg <- sprintf(
+        "Predicate functions must return a single `TRUE` or `FALSE`, not %s",
+        as_predicate_friendly_type_of(out)
+      )
+      if (.deprecate) {
+        msg <- paste_line(
+          "Returning complex values from a predicate function is soft-deprecated as of purrr 0.3.0.",
+          msg
+        )
+        signal_soft_deprecated(msg)
+      } else {
+        abort(msg)
+      }
+    }
+
+    out
+  }
+}
+
+as_predicate_friendly_type_of <- function(x) {
+  if (is_na(x)) {
+    "a missing value"
+  } else {
+    friendly_type_of(x, length = TRUE)
+  }
 }
