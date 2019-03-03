@@ -20,6 +20,8 @@
 #' * `modify_depth()` only modifies elements at a given level of a
 #'   nested data structure.
 #'
+#' * [modify_in()] modifies a single element in a [pluck()] location.
+#'
 #' @inheritParams map
 #' @inheritParams map2
 #' @param .depth Level of `.x` to map on. Use a negative value to count up
@@ -425,9 +427,15 @@ modify_depth_rec <- function(.x, .depth, .f,
   })
 }
 
+#' Map at depth
+#'
+#' This function is defunct and has been replaced by [map_depth()].
+#' See also [modify_depth()] for a version that preserves the types of
+#' the elements of the tree.
+#'
+#' @inheritParams map
 #' @export
-#' @usage NULL
-#' @rdname modify
+#' @keywords internal
 at_depth <- function(.x, .depth, .f, ...) {
   stop_defunct("at_depth() is defunct, please use `map_depth()` instead")
 }

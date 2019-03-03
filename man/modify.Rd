@@ -11,7 +11,6 @@
 \alias{imodify}
 \alias{modify_depth}
 \alias{modify_depth.default}
-\alias{at_depth}
 \title{Modify elements selectively}
 \usage{
 modify(.x, .f, ...)
@@ -107,6 +106,7 @@ elements of \code{.y} to \code{.f}, just like \code{\link[=map2]{map2()}}. \code
 the names or the indices to \code{.f} like \code{\link[=imap]{imap()}} does.
 \item \code{modify_depth()} only modifies elements at a given level of a
 nested data structure.
+\item \code{\link[=modify_in]{modify_in()}} modifies a single element in a \code{\link[=pluck]{pluck()}} location.
 }
 }
 \details{
