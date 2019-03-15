@@ -1,6 +1,6 @@
 Package: purrr
 Title: Functional Programming Tools
-Version: 0.3.1
+Version: 0.3.2
 Authors@R: c(
     person("Lionel", "Henry", , "lionel@rstudio.com", c("aut", "cre")),
     person("Hadley", "Wickham", , "hadley@rstudio.com", "aut"),
@@ -19,10 +19,10 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Packaged: 2019-02-27 21:22:32 UTC; lionel
+Packaged: 2019-03-15 15:56:56 UTC; lionel
 Author: Lionel Henry [aut, cre],
   Hadley Wickham [aut],
   RStudio [cph, fnd]
 Maintainer: Lionel Henry <lionel@rstudio.com>
 Repository: CRAN
-Date/Publication: 2019-03-03 10:20:06 UTC
+Date/Publication: 2019-03-15 18:20:02 UTC

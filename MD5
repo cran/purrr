@@ -1,7 +1,7 @@
-e61396f99d61c4336ab017a3d090ea88 *DESCRIPTION
+15c0525f2cca4c429854f274010405c2 *DESCRIPTION
 d32239bcb673463ab874e80d47fae504 *LICENSE
 80784348635eeec078bab007120147ed *NAMESPACE
-1885eaffb373b86ea2dbd0ad0de65385 *NEWS.md
+1fba35e5419f2d177d56a83994d31b57 *NEWS.md
 6ba4d8cb6f093d11e4cc118191a7b054 *R/along.R
 2965def0312e604669f0bed0354b8721 *R/arrays.R
 22d0078b14aa6cbbaa289416091e0f15 *R/as_mapper.R
@@ -41,7 +41,7 @@ cf1f2ef76bb918327207046697e53ac6 *R/splice.R
 cf658353261fdbe1130c955e3215a002 *R/utils.R
 3011f46c733271400987666dc871373d *R/when.R
 3b1e52ef06700c5d98db70193f366ff0 *README.md
-4058cb3de11ef1b93191d93721ddf68b *build/purrr.pdf
+fa117cde7e1e1aa5d5e859b30263be94 *build/purrr.pdf
 a13e4683d69d77d4d6d487b99d2b8fa7 *build/vignette.rds
 175eb279dc85365fcedf1057f9548728 *inst/doc/other-langs.Rmd
 fb440224c5d4bed098133e990f60d38e *inst/doc/other-langs.html
@@ -117,7 +117,7 @@ cfb390458d214a983383df824878698d *src/flatten.c
 7a81b2b59db0e23d5e18921a19d30c98 *src/init.c
 ddb7cdcf74d1f43090a5dc79367eeedc *src/map.c
 daa7efc01a8489ded96d8c0863e69b0f *src/map.h
-40847c8810ec5b732e213714e1302b6e *src/pluck.c
+5542f3db1d7d1e9a01fe95a799eaa193 *src/pluck.c
 8c9586189bdd80b8853ea0f8738f40c2 *src/transpose.c
 44668af668839200908745f6c7e0906b *src/utils.c
 371dea46f35f35a19afee808aae842d4 *src/utils.h
@@ -131,7 +131,7 @@ d932845034f5c9cf336a0ab696dd15c2 *tests/testthat/test-arrays.R
 947b783ebdafc53c27cf9491dd9a8ed5 *tests/testthat/test-as-mapper.R
 eea0308839414fbcfbc3d34bc2e412e4 *tests/testthat/test-chuck.R
 c4f174d41478f8aa1c78bca0795a53d9 *tests/testthat/test-coerce.R
-884e514abb60de8af46353af6e6d84b8 *tests/testthat/test-compose.R
+1eac4be55534aecf613f9dc09170eb80 *tests/testthat/test-compose.R
 dfa1f69845983496b58a40aa5833f4ef *tests/testthat/test-composition.R
 8ab467dc1f9af93feb16252c18270531 *tests/testthat/test-conditions.R
 c0946c7cca35666fc0c1dda08470534d *tests/testthat/test-cross.R
