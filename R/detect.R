@@ -1,7 +1,7 @@
 #' Find the value or position of the first match
 #'
-#' @inheritParams every
 #' @inheritParams map
+#' @inheritParams every
 #' @param .dir If `"forward"`, the default, starts at the beginning of
 #'   the vector and move towards the end; if `"backward"`, starts at
 #'   the end of the vector and moves towards the beginning.
@@ -20,8 +20,8 @@
 #' 3:10 %>% detect(is_even)
 #' 3:10 %>% detect_index(is_even)
 #'
-#' 3:10 %>% detect(is_even, .right = TRUE)
-#' 3:10 %>% detect_index(is_even, .right = TRUE)
+#' 3:10 %>% detect(is_even, .dir = "backward")
+#' 3:10 %>% detect_index(is_even, .dir = "backward")
 #'
 #'
 #' # Since `.f` is passed to as_mapper(), you can supply a

@@ -3,7 +3,7 @@
 
 # purrr <img src="man/figures/logo.png" align="right" />
 
-[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/purrr)](http://cran.r-project.org/package=purrr)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/purrr)](https://cran.r-project.org/package=purrr)
 [![Build
 Status](https://travis-ci.org/tidyverse/purrr.svg?branch=master)](https://travis-ci.org/tidyverse/purrr)
 [![AppVeyor Build
@@ -72,8 +72,8 @@ the equivalents in base R:
     to extract components by name), or a numeric vector (used to extract
     by position).
 
-## Code of conduct
+-----
 
 Please note that this project is released with a [Contributor Code of
-Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree
+Conduct](https://purrr.tidyverse.org/CODE_OF_CONDUCT). By participating in this project you agree
 to abide by its terms.
