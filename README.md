@@ -3,13 +3,14 @@
 
 # purrr <img src="man/figures/logo.png" align="right" />
 
+<!-- badges: start -->
+
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/purrr)](https://cran.r-project.org/package=purrr)
-[![Build
-Status](https://travis-ci.org/tidyverse/purrr.svg?branch=master)](https://travis-ci.org/tidyverse/purrr)
-[![AppVeyor Build
-Status](https://ci.appveyor.com/api/projects/status/github/tidyverse/purrr?branch=master&svg=true)](https://ci.appveyor.com/project/tidyverse/purrr)
-[![Coverage
-Status](https://img.shields.io/codecov/c/github/tidyverse/purrr/master.svg)](https://codecov.io/github/tidyverse/purrr?branch=master)
+[![R build
+status](https://github.com/tidyverse/purrr/workflows/R-CMD-check/badge.svg)](https://github.com/tidyverse/purrr)
+[![Codecov test
+coverage](https://codecov.io/gh/tidyverse/purrr/branch/master/graph/badge.svg)](https://codecov.io/gh/tidyverse/purrr?branch=master)
+<!-- badges: end -->
 
 ## Overview
 
@@ -75,5 +76,5 @@ the equivalents in base R:
 -----
 
 Please note that this project is released with a [Contributor Code of
-Conduct](https://purrr.tidyverse.org/CODE_OF_CONDUCT). By participating in this project you agree
-to abide by its terms.
+Conduct](https://purrr.tidyverse.org/CODE_OF_CONDUCT). By participating
+in this project you agree to abide by its terms.
