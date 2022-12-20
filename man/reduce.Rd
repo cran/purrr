@@ -12,19 +12,30 @@ reduce2(.x, .y, .f, ..., .init)
 \arguments{
 \item{.x}{A list or atomic vector.}
 
-\item{.f}{For \code{reduce()}, and \code{accumulate()}, a 2-argument
-function. The function will be passed the accumulated value as
-the first argument and the "next" value as the second argument.
+\item{.f}{For \code{reduce()}, a 2-argument function. The function will be passed
+the accumulated value as the first argument and the "next" value as the
+second argument.
 
-For \code{reduce2()} and \code{accumulate2()}, a 3-argument function. The
-function will be passed the accumulated value as the first
-argument, the next value of \code{.x} as the second argument, and the
-next value of \code{.y} as the third argument.
+For \code{reduce2()}, a 3-argument function. The function will be passed the
+accumulated value as the first argument, the next value of \code{.x} as the
+second argument, and the next value of \code{.y} as the third argument.
 
 The reduction terminates early if \code{.f} returns a value wrapped in
 a \code{\link[=done]{done()}}.}
 
-\item{...}{Additional arguments passed on to the mapped function.}
+\item{...}{Additional arguments passed on to the mapped function.
+
+We now generally recommend against using \code{...} to pass additional
+(constant) arguments to \code{.f}. Instead use a shorthand anonymous function:
+
+\if{html}{\out{<div class="sourceCode R">}}\preformatted{# Instead of
+x |> map(f, 1, 2, collapse = ",")
+# do:
+x |> map(\\(x) f(x, 1, 2, collapse = ","))
+}\if{html}{\out{</div>}}
+
+This makes it easier to understand which arguments belong to which
+function and will tend to yield better error messages.}
 
 \item{.init}{If supplied, will be used as the first value to start
 the accumulation, rather than using \code{.x[[1]]}. This is useful if
@@ -87,8 +98,12 @@ about a use case for a right reduction with a ternary function.
 \examples{
 # Reducing `+` computes the sum of a vector while reducing `*`
 # computes the product:
-1:3 \%>\% reduce(`+`)
-1:10 \%>\% reduce(`*`)
+1:3 |> reduce(`+`)
+1:10 |> reduce(`*`)
+
+# By ignoring the input vector (nxt), you can turn output of one step into
+# the input for the next. This code takes 10 steps of a random walk:
+reduce(1:10, \(acc, nxt) acc + rnorm(1), .init = 0)
 
 # When the operation is associative, the direction of reduction
 # does not matter:
@@ -105,8 +120,8 @@ str(reduce(1:4, list, .dir = "backward"))
 # reduce2() takes a ternary function and a second vector that is
 # one element smaller than the first vector:
 paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
-letters[1:4] \%>\% reduce(paste2)
-letters[1:4] \%>\% reduce2(c("-", ".", "-"), paste2)
+letters[1:4] |> reduce(paste2)
+letters[1:4] |> reduce2(c("-", ".", "-"), paste2)
 
 x <- list(c(0, 1), c(2, 3), c(4, 5))
 y <- list(c(6, 7), c(8, 9))
@@ -123,7 +138,7 @@ paste3 <- function(out, input, sep = ".") {
   }
   paste(out, input, sep = sep)
 }
-letters \%>\% reduce(paste3)
+letters |> reduce(paste3)
 
 # Here the early return branch checks the incoming inputs passed on
 # the RHS:
@@ -133,7 +148,7 @@ paste4 <- function(out, input, sep = ".") {
   }
   paste(out, input, sep = sep)
 }
-letters \%>\% reduce(paste4)
+letters |> reduce(paste4)
 }
 \seealso{
 \code{\link[=accumulate]{accumulate()}} for a version that returns all intermediate

@@ -1,4 +1,3 @@
-
 test_that("new_rate() creates rate objects", {
   rate <- new_rate("foo", jitter = FALSE, max_times = 10)
   expect_identical(rate$state$i, 0L)
@@ -18,12 +17,11 @@ test_that("can bump and reset count", {
 })
 
 test_that("rates have print methods", {
-  expect_known_output(file = test_path("test-rate-print.txt"), {
+  expect_snapshot({
     # Also checks infinite `max_times` prints properly
-    print(rate_delay(20, max_times = Inf))
+    rate_delay(20, max_times = Inf)
 
-    cat_line()
-    print(rate_backoff())
+    rate_backoff()
   })
 })
 
@@ -47,17 +45,8 @@ test_that("rate_delay() delays", {
   msg <- catch_cnd(rate_sleep(rate, quiet = FALSE))
   expect_identical(msg$length, 0.02)
 
-  expect_error_cnd(
-    rate_sleep(rate),
-    "Request failed after 3 attempts",
-    "purrr_error_rate_excess"
-  )
-
-  expect_error_cnd(
-    rate_sleep(rate),
-    "has already be run more than `max_times`",
-    "purrr_error_rate_expired"
-  )
+  expect_snapshot(rate_sleep(rate), error = TRUE)
+  expect_snapshot(rate_sleep(rate), error = TRUE)
 })
 
 test_that("rate_backoff() backs off", {
@@ -77,43 +66,13 @@ test_that("rate_backoff() backs off", {
   msg <- catch_cnd(rate_sleep(rate, quiet = FALSE))
   expect_identical(msg$length, 0.08)
 
-  expect_error_cnd(
-    rate_sleep(rate),
-    "Request failed after 3 attempts",
-    "purrr_error_rate_excess"
-  )
-
-  expect_error_cnd(
-    rate_sleep(rate),
-    "has already be run more than",
-    "purrr_error_rate_expired"
-  )
+  expect_snapshot(rate_sleep(rate), error = TRUE)
+  expect_snapshot(rate_sleep(rate), error = TRUE)
 })
 
 test_that("rate_sleep() checks that rate is still valid", {
   rate <- rate_delay(1, max_times = 0)
-  expect_error_cnd(
-    rate_sleep(rate),
-    "failed after 0 attempts",
-    "purrr_error_rate_excess"
-  )
-  expect_error_cnd(
-    rate_sleep(rate),
-    "already be run more than `max_times` allows",
-    "purrr_error_rate_expired"
-  )
+  expect_snapshot(rate_sleep(rate), error = TRUE)
+  expect_snapshot(rate_sleep(rate), error = TRUE)
 })
 
-test_that("insistently() resets rate state", {
-  fn <- insistently(compose(), rate_delay(1, max_times = 0))
-  expect_error_cnd(
-    fn(),
-    "failed after 0 attempts",
-    "purrr_error_rate_excess"
-  )
-  expect_error_cnd(
-    fn(),
-    "failed after 0 attempts",
-    "purrr_error_rate_excess"
-  )
-})

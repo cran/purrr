@@ -11,14 +11,13 @@
 #' @param .y For `reduce2()` and `accumulate2()`, an additional
 #'   argument that is passed to `.f`. If `init` is not set, `.y`
 #'   should be 1 element shorter than `.x`.
-#' @param .f For `reduce()`, and `accumulate()`, a 2-argument
-#'   function. The function will be passed the accumulated value as
-#'   the first argument and the "next" value as the second argument.
+#' @param .f For `reduce()`, a 2-argument function. The function will be passed
+#'   the accumulated value as the first argument and the "next" value as the
+#'   second argument.
 #'
-#'   For `reduce2()` and `accumulate2()`, a 3-argument function. The
-#'   function will be passed the accumulated value as the first
-#'   argument, the next value of `.x` as the second argument, and the
-#'   next value of `.y` as the third argument.
+#'   For `reduce2()`, a 3-argument function. The function will be passed the
+#'   accumulated value as the first argument, the next value of `.x` as the
+#'   second argument, and the next value of `.y` as the third argument.
 #'
 #'   The reduction terminates early if `.f` returns a value wrapped in
 #'   a [done()].
@@ -55,7 +54,7 @@
 #' To update your code with the same reduction as `reduce_right()`,
 #' simply reverse your vector and use a left reduction:
 #'
-#' ```r
+#' ```{r, eval = FALSE}
 #' # Before:
 #' reduce_right(1:3, f)
 #'
@@ -73,8 +72,12 @@
 #' @examples
 #' # Reducing `+` computes the sum of a vector while reducing `*`
 #' # computes the product:
-#' 1:3 %>% reduce(`+`)
-#' 1:10 %>% reduce(`*`)
+#' 1:3 |> reduce(`+`)
+#' 1:10 |> reduce(`*`)
+#'
+#' # By ignoring the input vector (nxt), you can turn output of one step into
+#' # the input for the next. This code takes 10 steps of a random walk:
+#' reduce(1:10, \(acc, nxt) acc + rnorm(1), .init = 0)
 #'
 #' # When the operation is associative, the direction of reduction
 #' # does not matter:
@@ -91,8 +94,8 @@
 #' # reduce2() takes a ternary function and a second vector that is
 #' # one element smaller than the first vector:
 #' paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
-#' letters[1:4] %>% reduce(paste2)
-#' letters[1:4] %>% reduce2(c("-", ".", "-"), paste2)
+#' letters[1:4] |> reduce(paste2)
+#' letters[1:4] |> reduce2(c("-", ".", "-"), paste2)
 #'
 #' x <- list(c(0, 1), c(2, 3), c(4, 5))
 #' y <- list(c(6, 7), c(8, 9))
@@ -109,7 +112,7 @@
 #'   }
 #'   paste(out, input, sep = sep)
 #' }
-#' letters %>% reduce(paste3)
+#' letters |> reduce(paste3)
 #'
 #' # Here the early return branch checks the incoming inputs passed on
 #' # the RHS:
@@ -119,7 +122,7 @@
 #'   }
 #'   paste(out, input, sep = sep)
 #' }
-#' letters %>% reduce(paste4)
+#' letters |> reduce(paste4)
 #' @export
 reduce <- function(.x, .f, ..., .init, .dir = c("forward", "backward")) {
   reduce_impl(.x, .f, ..., .init = .init, .dir = .dir)
@@ -130,10 +133,16 @@ reduce2 <- function(.x, .y, .f, ..., .init) {
   reduce2_impl(.x, .y, .f, ..., .init = .init, .left = TRUE)
 }
 
-reduce_impl <- function(.x, .f, ..., .init, .dir, .acc = FALSE) {
+reduce_impl <- function(.x,
+                        .f,
+                        ...,
+                        .init,
+                        .dir,
+                        .acc = FALSE,
+                        .purrr_error_call = caller_env()) {
   left <- arg_match(.dir, c("forward", "backward")) == "forward"
 
-  out <- reduce_init(.x, .init, left = left)
+  out <- reduce_init(.x, .init, left = left, error_call = .purrr_error_call)
   idx <- reduce_index(.x, .init, left = left)
 
   if (.acc) {
@@ -156,11 +165,7 @@ reduce_impl <- function(.x, .f, ..., .init, .dir, .acc = FALSE) {
     prev <- out
     elt <- .x[[idx[[i]]]]
 
-    if (has_force_and_call) {
-      out <- forceAndCall(2, fn, out, elt, ...)
-    } else {
-      out <- fn(out, elt, ...)
-    }
+    out <- forceAndCall(2, fn, out, elt, ...)
 
     if (is_done_box(out)) {
       return(reduce_early(out, prev, .acc, acc_out, acc_idx[[i]], left))
@@ -201,12 +206,16 @@ reduce_early <- function(out, prev, acc, acc_out, acc_idx, left = TRUE) {
   }
 }
 
-reduce_init <- function(x, init, left = TRUE) {
+reduce_init <- function(x, init, left = TRUE, error_call = caller_env()) {
   if (!missing(init)) {
     init
   } else {
     if (is_empty(x)) {
-      stop("`.x` is empty, and no `.init` supplied", call. = FALSE)
+      cli::cli_abort(
+        "Must supply {.arg .init} when {.arg .x} is empty.",
+        arg = ".init",
+        call = error_call
+      )
     } else if (left) {
       x[[1]]
     } else {
@@ -254,13 +263,23 @@ accum_index <- function(out, left) {
   }
 }
 
-reduce2_impl <- function(.x, .y, .f, ..., .init, .left = TRUE, .acc = FALSE) {
-  out <- reduce_init(.x, .init, left = .left)
+reduce2_impl <- function(.x,
+                         .y,
+                         .f,
+                         ...,
+                         .init,
+                         .left = TRUE,
+                         .acc = FALSE,
+                         .purrr_error_call = caller_env()) {
+  out <- reduce_init(.x, .init, left = .left, error_call = .purrr_error_call)
   x_idx <- reduce_index(.x, .init, left = .left)
   y_idx <- reduce_index(.y, NULL, left = .left)
 
   if (length(x_idx) != length(y_idx)) {
-    stop("`.y` does not have length ", length(x_idx))
+    cli::cli_abort(
+      "{.arg .y} must have length {length(x_idx)}, not {length(y_idx)}.",
+      arg = ".y",
+      call = .purrr_error_call)
   }
 
   .f <- as_mapper(.f, ...)
@@ -276,11 +295,7 @@ reduce2_impl <- function(.x, .y, .f, ..., .init, .left = TRUE, .acc = FALSE) {
     x_i <- x_idx[[i]]
     y_i <- y_idx[[i]]
 
-    if (has_force_and_call) {
-      out <- forceAndCall(3, .f, out, .x[[x_i]], .y[[y_i]], ...)
-    } else {
-      out <- .f(out, .x[[x_i]], .y[[y_i]], ...)
-    }
+    out <- forceAndCall(3, .f, out, .x[[x_i]], .y[[y_i]], ...)
 
     if (is_done_box(out)) {
       return(reduce_early(out, prev, .acc, acc_out, acc_idx[[i]]))
@@ -347,11 +362,15 @@ seq_len2 <- function(start, end) {
 #'   the accumulation, rather than using `.x[[1]]`. This is useful if
 #'   you want to ensure that `reduce` returns a correct value when `.x`
 #'   is empty. If missing, and `.x` is empty, will throw an error.
-#'
 #' @param .dir The direction of accumulation as a string, one of
 #'   `"forward"` (the default) or `"backward"`. See the section about
 #'   direction below.
-#'
+#' @param .simplify If `NA`, the default, the accumulated list of
+#'   results is simplified to an atomic vector if possible.
+#'   If `TRUE`, the result is simplified, erroring if not possible.
+#'   If `FALSE`, the result is not simplified, always returning a list.
+#' @param .ptype If `simplify` is `NA` or `TRUE`, optionally supply a vector
+#'   prototype to enforce the output type.
 #' @return A vector the same length of `.x` with the same names as `.x`.
 #'
 #'   If `.init` is supplied, the length is extended by 1. If `.x` has
@@ -381,14 +400,14 @@ seq_len2 <- function(start, end) {
 #' @seealso [reduce()] when you only need the final reduced value.
 #' @examples
 #' # With an associative operation, the final value is always the
-#' # same, no matter the direction. You'll find it in the last element for a
-#' # backward (left) accumulation, and in the first element for forward
+#' # same, no matter the direction. You'll find it in the first element for a
+#' # backward (left) accumulation, and in the last element for forward
 #' # (right) one:
-#' 1:5 %>% accumulate(`+`)
-#' 1:5 %>% accumulate(`+`, .dir = "backward")
+#' 1:5 |> accumulate(`+`)
+#' 1:5 |> accumulate(`+`, .dir = "backward")
 #'
 #' # The final value is always equal to the equivalent reduction:
-#' 1:5 %>% reduce(`+`)
+#' 1:5 |> reduce(`+`)
 #'
 #' # It is easier to understand the details of the reduction with
 #' # `paste()`.
@@ -398,12 +417,15 @@ seq_len2 <- function(start, end) {
 #' # with a left reduction, and to the right otherwise:
 #' accumulate(letters[1:5], paste, sep = ".", .dir = "backward")
 #'
+#' # By ignoring the input vector (nxt), you can turn output of one step into
+#' # the input for the next. This code takes 10 steps of a random walk:
+#' accumulate(1:10, \(acc, nxt) acc + rnorm(1), .init = 0)
+#'
 #' # `accumulate2()` is a version of `accumulate()` that works with
 #' # 3-argument functions and one additional vector:
-#' paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
-#' letters[1:4] %>% accumulate(paste2)
-#' letters[1:4] %>% accumulate2(c("-", ".", "-"), paste2)
-#'
+#' paste2 <- function(acc, nxt, sep = ".") paste(acc, nxt, sep = sep)
+#' letters[1:4] |> accumulate(paste2)
+#' letters[1:4] |> accumulate2(c("-", ".", "-"), paste2)
 #'
 #' # You can shortcircuit an accumulation and terminate it early by
 #' # returning a value wrapped in a done(). In the following example
@@ -415,7 +437,7 @@ seq_len2 <- function(start, end) {
 #'   }
 #'   paste(out, input, sep = sep)
 #' }
-#' letters %>% accumulate(paste3)
+#' letters |> accumulate(paste3)
 #'
 #' # Note how we get twice the same value in the accumulation. That's
 #' # because we have returned it twice. To prevent this, return an empty
@@ -427,7 +449,7 @@ seq_len2 <- function(start, end) {
 #'   }
 #'   paste(out, input, sep = sep)
 #' }
-#' letters %>% accumulate(paste3)
+#' letters |> accumulate(paste3)
 #'
 #' # Here the early return branch checks the incoming inputs passed on
 #' # the RHS:
@@ -437,7 +459,7 @@ seq_len2 <- function(start, end) {
 #'   }
 #'   paste(out, input, sep = sep)
 #' }
-#' letters %>% accumulate(paste4)
+#' letters |> accumulate(paste4)
 #'
 #'
 #' # Simulating stochastic processes with drift
@@ -445,34 +467,32 @@ seq_len2 <- function(start, end) {
 #' library(dplyr)
 #' library(ggplot2)
 #'
-#' rerun(5, rnorm(100)) %>%
-#'   set_names(paste0("sim", 1:5)) %>%
-#'   map(~ accumulate(., ~ .05 + .x + .y)) %>%
-#'   map_dfr(~ tibble(value = .x, step = 1:100), .id = "simulation") %>%
+#' map(1:5, \(i) rnorm(100)) |>
+#'   set_names(paste0("sim", 1:5)) |>
+#'   map(\(l) accumulate(l, \(acc, nxt) .05 + acc + nxt)) |>
+#'   map(\(x) tibble(value = x, step = 1:100)) |>
+#'   list_rbind(id = "simulation") |>
 #'   ggplot(aes(x = step, y = value)) +
 #'     geom_line(aes(color = simulation)) +
 #'     ggtitle("Simulations of a random walk with drift")
 #' }
 #' @export
-accumulate <- function(.x, .f, ..., .init, .dir = c("forward", "backward")) {
+accumulate <- function(.x, .f, ..., .init, .dir = c("forward", "backward"), .simplify = NA, .ptype = NULL) {
   .dir <- arg_match(.dir, c("forward", "backward"))
   .f <- as_mapper(.f, ...)
 
   res <- reduce_impl(.x, .f, ..., .init = .init, .dir = .dir, .acc = TRUE)
   names(res) <- accumulate_names(names(.x), .init, .dir)
 
-  # FIXME vctrs: This simplification step is for compatibility with
-  # the `base::Reduce()` implementation in earlier purrr versions
-  if (all(map_int(res, length) == 1L)) {
-    res <- unlist(res, recursive = FALSE)
-  }
-
+  res <- list_simplify_internal(res, .simplify, .ptype)
   res
 }
 #' @rdname accumulate
 #' @export
-accumulate2 <- function(.x, .y, .f, ..., .init) {
-  reduce2_impl(.x, .y, .f, ..., .init = .init, .acc = TRUE)
+accumulate2 <- function(.x, .y, .f, ..., .init, .simplify = NA, .ptype = NULL) {
+  res <- reduce2_impl(.x, .y, .f, ..., .init = .init, .acc = TRUE)
+  res <- list_simplify_internal(res, .simplify, .ptype)
+  res
 }
 
 accumulate_names <- function(nms, init, dir) {
@@ -493,10 +513,9 @@ accumulate_names <- function(nms, init, dir) {
 #' Reduce from the right (retired)
 #'
 #' @description
+#' `r lifecycle::badge("deprecated")`
 #'
-#' \Sexpr[results=rd, stage=render]{purrr:::lifecycle("soft-deprecated")}
-#'
-#' These functions are retired as of purrr 0.3.0. Please use the
+#' These functions were deprecated in purrr 0.3.0. Please use the
 #' `.dir` argument of [reduce()] instead, or reverse your vectors
 #' and use a left reduction.
 #'
@@ -505,52 +524,38 @@ accumulate_names <- function(nms, init, dir) {
 #' @keywords internal
 #' @export
 reduce_right <- function(.x, .f, ..., .init) {
-  signal_soft_deprecated(paste_line(
-    "`reduce_right()` is soft-deprecated as of purrr 0.3.0.",
-    "Please use the new `.dir` argument of `reduce()` instead.",
-    "",
-    "  # Before:",
-    "  reduce_right(1:3, f)",
-    "",
-    "  # After:",
-    "  reduce(1:3, f, .dir = \"backward\")  # New algorithm",
-    "  reduce(rev(1:3), f)                # Same algorithm as reduce_right()",
-    ""
-  ))
+  lifecycle::deprecate_warn(
+    when = "0.3.0",
+    what = "reduce_right()",
+    with = "reduce(.dir)",
+    always = TRUE
+  )
+
   .x <- rev(.x) # Compatibility
   reduce_impl(.x, .f, ..., .dir = "forward", .init = .init)
 }
 #' @rdname reduce_right
 #' @export
 reduce2_right <- function(.x, .y, .f, ..., .init) {
-  signal_soft_deprecated(paste_line(
-    "`reduce2_right()` is soft-deprecated as of purrr 0.3.0.",
-    "Please reverse your vectors and use `reduce2()` instead.",
-    "",
-    "  # Before:",
-    "  reduce2_right(x, y, f)",
-    "",
-    "  # After:",
-    "  reduce2(rev(x), rev(y), f)",
-    ""
-  ))
+  lifecycle::deprecate_warn(
+    when = "0.3.0",
+    what = "reduce2_right()",
+    with = I("reverse your vectors and use `reduce2()`"),
+    always = TRUE
+  )
+
   reduce2_impl(.x, .y, .f, ..., .init = .init, .left = FALSE)
 }
 
 #' @rdname reduce_right
 #' @export
 accumulate_right <- function(.x, .f, ..., .init) {
-  signal_soft_deprecated(paste_line(
-    "`accumulate_right()` is soft-deprecated as of purrr 0.3.0.",
-    "Please use the new `.dir` argument of `accumulate()` instead.",
-    "",
-    "  # Before:",
-    "  accumulate_right(x, f)",
-    "",
-    "  # After:",
-    "  accumulate(x, f, .dir = \"backward\")",
-    ""
-  ))
+  lifecycle::deprecate_warn(
+    when = "0.3.0",
+    what = "accumulate_right()",
+    with = "accumulate(.dir)",
+    always = TRUE
+  )
 
   # Note the order of arguments is switched
   f <- function(y, x) {

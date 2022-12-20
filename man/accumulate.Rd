@@ -5,9 +5,17 @@
 \alias{accumulate2}
 \title{Accumulate intermediate results of a vector reduction}
 \usage{
-accumulate(.x, .f, ..., .init, .dir = c("forward", "backward"))
+accumulate(
+  .x,
+  .f,
+  ...,
+  .init,
+  .dir = c("forward", "backward"),
+  .simplify = NA,
+  .ptype = NULL
+)
 
-accumulate2(.x, .y, .f, ..., .init)
+accumulate2(.x, .y, .f, ..., .init, .simplify = NA, .ptype = NULL)
 }
 \arguments{
 \item{.x}{A list or atomic vector.}
@@ -24,7 +32,19 @@ next value in sequence from \code{.y} is passed as the third argument.
 The accumulation terminates early if \code{.f} returns a value wrapped in
 a \code{\link[=done]{done()}}.}
 
-\item{...}{Additional arguments passed on to the mapped function.}
+\item{...}{Additional arguments passed on to the mapped function.
+
+We now generally recommend against using \code{...} to pass additional
+(constant) arguments to \code{.f}. Instead use a shorthand anonymous function:
+
+\if{html}{\out{<div class="sourceCode R">}}\preformatted{# Instead of
+x |> map(f, 1, 2, collapse = ",")
+# do:
+x |> map(\\(x) f(x, 1, 2, collapse = ","))
+}\if{html}{\out{</div>}}
+
+This makes it easier to understand which arguments belong to which
+function and will tend to yield better error messages.}
 
 \item{.init}{If supplied, will be used as the first value to start
 the accumulation, rather than using \code{.x[[1]]}. This is useful if
@@ -34,6 +54,14 @@ is empty. If missing, and \code{.x} is empty, will throw an error.}
 \item{.dir}{The direction of accumulation as a string, one of
 \code{"forward"} (the default) or \code{"backward"}. See the section about
 direction below.}
+
+\item{.simplify}{If \code{NA}, the default, the accumulated list of
+results is simplified to an atomic vector if possible.
+If \code{TRUE}, the result is simplified, erroring if not possible.
+If \code{FALSE}, the result is not simplified, always returning a list.}
+
+\item{.ptype}{If \code{simplify} is \code{NA} or \code{TRUE}, optionally supply a vector
+prototype to enforce the output type.}
 
 \item{.y}{For \code{accumulate2()} \code{.y} is the second argument of the pair. It
 needs to be 1 element shorter than the vector to be accumulated (\code{.x}).
@@ -98,14 +126,14 @@ reducing \code{list()} from the right produces a right-leaning list.
 
 \examples{
 # With an associative operation, the final value is always the
-# same, no matter the direction. You'll find it in the last element for a
-# backward (left) accumulation, and in the first element for forward
+# same, no matter the direction. You'll find it in the first element for a
+# backward (left) accumulation, and in the last element for forward
 # (right) one:
-1:5 \%>\% accumulate(`+`)
-1:5 \%>\% accumulate(`+`, .dir = "backward")
+1:5 |> accumulate(`+`)
+1:5 |> accumulate(`+`, .dir = "backward")
 
 # The final value is always equal to the equivalent reduction:
-1:5 \%>\% reduce(`+`)
+1:5 |> reduce(`+`)
 
 # It is easier to understand the details of the reduction with
 # `paste()`.
@@ -115,12 +143,15 @@ accumulate(letters[1:5], paste, sep = ".")
 # with a left reduction, and to the right otherwise:
 accumulate(letters[1:5], paste, sep = ".", .dir = "backward")
 
+# By ignoring the input vector (nxt), you can turn output of one step into
+# the input for the next. This code takes 10 steps of a random walk:
+accumulate(1:10, \(acc, nxt) acc + rnorm(1), .init = 0)
+
 # `accumulate2()` is a version of `accumulate()` that works with
 # 3-argument functions and one additional vector:
-paste2 <- function(x, y, sep = ".") paste(x, y, sep = sep)
-letters[1:4] \%>\% accumulate(paste2)
-letters[1:4] \%>\% accumulate2(c("-", ".", "-"), paste2)
-
+paste2 <- function(acc, nxt, sep = ".") paste(acc, nxt, sep = sep)
+letters[1:4] |> accumulate(paste2)
+letters[1:4] |> accumulate2(c("-", ".", "-"), paste2)
 
 # You can shortcircuit an accumulation and terminate it early by
 # returning a value wrapped in a done(). In the following example
@@ -132,7 +163,7 @@ paste3 <- function(out, input, sep = ".") {
   }
   paste(out, input, sep = sep)
 }
-letters \%>\% accumulate(paste3)
+letters |> accumulate(paste3)
 
 # Note how we get twice the same value in the accumulation. That's
 # because we have returned it twice. To prevent this, return an empty
@@ -144,7 +175,7 @@ paste3 <- function(out, input, sep = ".") {
   }
   paste(out, input, sep = sep)
 }
-letters \%>\% accumulate(paste3)
+letters |> accumulate(paste3)
 
 # Here the early return branch checks the incoming inputs passed on
 # the RHS:
@@ -154,7 +185,7 @@ paste4 <- function(out, input, sep = ".") {
   }
   paste(out, input, sep = sep)
 }
-letters \%>\% accumulate(paste4)
+letters |> accumulate(paste4)
 
 
 # Simulating stochastic processes with drift
@@ -162,10 +193,11 @@ letters \%>\% accumulate(paste4)
 library(dplyr)
 library(ggplot2)
 
-rerun(5, rnorm(100)) \%>\%
-  set_names(paste0("sim", 1:5)) \%>\%
-  map(~ accumulate(., ~ .05 + .x + .y)) \%>\%
-  map_dfr(~ tibble(value = .x, step = 1:100), .id = "simulation") \%>\%
+map(1:5, \(i) rnorm(100)) |>
+  set_names(paste0("sim", 1:5)) |>
+  map(\(l) accumulate(l, \(acc, nxt) .05 + acc + nxt)) |>
+  map(\(x) tibble(value = x, step = 1:100)) |>
+  list_rbind(id = "simulation") |>
   ggplot(aes(x = step, y = value)) +
     geom_line(aes(color = simulation)) +
     ggtitle("Simulations of a random walk with drift")

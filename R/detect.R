@@ -1,11 +1,11 @@
 #' Find the value or position of the first match
 #'
+#' @inheritParams keep
 #' @inheritParams map
-#' @inheritParams every
 #' @param .dir If `"forward"`, the default, starts at the beginning of
 #'   the vector and move towards the end; if `"backward"`, starts at
 #'   the end of the vector and moves towards the beginning.
-#' @param .right Soft-deprecated. Please use `.dir` instead.
+#' @param .right `r lifecycle::badge("deprecated")` Please use `.dir` instead.
 #' @param .default The value returned when nothing is detected.
 #' @return `detect` the value of the first item that matches the
 #'  predicate; `detect_index` the position of the matching item.
@@ -17,11 +17,11 @@
 #' @examples
 #' is_even <- function(x) x %% 2 == 0
 #'
-#' 3:10 %>% detect(is_even)
-#' 3:10 %>% detect_index(is_even)
+#' 3:10 |> detect(is_even)
+#' 3:10 |> detect_index(is_even)
 #'
-#' 3:10 %>% detect(is_even, .dir = "backward")
-#' 3:10 %>% detect_index(is_even, .dir = "backward")
+#' 3:10 |> detect(is_even, .dir = "backward")
+#' 3:10 |> detect_index(is_even, .dir = "backward")
 #'
 #'
 #' # Since `.f` is passed to as_mapper(), you can supply a
@@ -43,7 +43,7 @@
 #' which(map_lgl(x, "foo"))
 detect <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL, .default = NULL) {
   .f <- as_predicate(.f, ..., .mapper = TRUE)
-  .dir <- arg_match(.dir, c("forward", "backward"))
+  .dir <- arg_match(.dir)
 
   for (i in index(.x, .dir, .right, "detect")) {
     if (.f(.x[[i]], ...)) {
@@ -58,7 +58,7 @@ detect <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL, 
 #' @rdname detect
 detect_index <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL) {
   .f <- as_predicate(.f, ..., .mapper = TRUE)
-  .dir <- arg_match(.dir, c("forward", "backward"))
+  .dir <- arg_match(.dir)
 
   for (i in index(.x, .dir, .right, "detect_index")) {
     if (.f(.x[[i]], ...)) {
@@ -69,18 +69,16 @@ detect_index <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = 
   0L
 }
 
+
+
 index <- function(x, dir, right = NULL, fn) {
   if (!is_null(right)) {
-    signal_soft_deprecated(env = caller_env(2), paste_line(
-      sprintf("The `.right` argument of `%s` is soft-deprecated as of purrr 0.3.0.", fn),
-      "Please use the new `.dir` argument instead:",
-      "",
-      "  # Before",
-      sprintf("  %s(x, f, .right = TRUE)", fn),
-      "",
-      "  # After",
-      sprintf("  %s(x, f, .dir = \"backward\")", fn)
-    ))
+    lifecycle::deprecate_warn(
+      when = "0.3.0",
+      what = paste0(fn, "(.right)"),
+      with = paste0(fn, "(.dir)"),
+      always = TRUE
+    )
     dir <- if (right) "backward" else "forward"
   }
 
@@ -98,8 +96,8 @@ index <- function(x, dir, right = NULL, fn) {
 #' @export
 #' @examples
 #' x <- list(1:10, 5, 9.9)
-#' x %>% has_element(1:10)
-#' x %>% has_element(3)
+#' x |> has_element(1:10)
+#' x |> has_element(3)
 has_element <- function(.x, .y) {
   some(.x, identical, .y)
 }

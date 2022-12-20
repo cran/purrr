@@ -1,7 +1,6 @@
-context("reduce")
-
 test_that("empty input returns init or error", {
-  expect_error(reduce(list()), "no `.init` supplied")
+  expect_snapshot(reduce(list()), error = TRUE)
+
   expect_equal(reduce(list(), `+`, .init = 0), 0)
 })
 
@@ -31,7 +30,6 @@ test_that("can shortcircuit reduction with done()", {
 })
 
 test_that("reduce() forces arguments (#643)", {
-  skip_if(!has_force_and_call)
   compose <- function(f, g) function(x) f(g(x))
   expect_identical(reduce(list(identity, identity), compose)(1), 1)
 })
@@ -103,12 +101,24 @@ test_that("can terminate accumulate() early with an empty box", {
 })
 
 test_that("accumulate() forces arguments (#643)", {
-  skip_if(!has_force_and_call)
   compose <- function(f, g) function(x) f(g(x))
   fns <- accumulate(list(identity, identity), compose)
   expect_true(every(fns, function(f) identical(f(1), 1)))
 })
 
+test_that("accumulate() uses vctrs to simplify results", {
+  out <- list("foo", factor("bar")) %>% accumulate(~ .y)
+  expect_identical(out, c("foo", "bar"))
+})
+
+test_that("accumulate() does not fail when input can't be simplified", {
+  expect_identical(accumulate(list(1L, 2:3), ~ .y), list(1L, 2:3))
+  expect_identical(accumulate(list(1, "a"), ~ .y), list(1, "a"))
+})
+
+test_that("accumulate() does fail when simpification is required", {
+  expect_snapshot(accumulate(list(1, "a"), ~ .y, .simplify = TRUE), error = TRUE)
+})
 
 # reduce2 -----------------------------------------------------------------
 
@@ -118,6 +128,14 @@ test_that("basic application works", {
   x <- c("a", "b", "c")
   expect_equal(reduce2(x, c("-", "."), paste2), "a-b.c")
   expect_equal(reduce2(x, c(".", "-", "."), paste2, .init = "x"), "x.a-b.c")
+})
+
+test_that("requires equal length vectors", {
+  expect_snapshot(reduce2(1:3, 1, `+`), error = TRUE)
+})
+
+test_that("requires init if `.x` is empty", {
+  expect_snapshot(reduce2(list()), error = TRUE)
 })
 
 test_that("reduce returns original input if it was length one", {
@@ -132,7 +150,6 @@ test_that("can shortcircuit reduce2() with done()", {
 })
 
 test_that("reduce2() forces arguments (#643)", {
-  skip_if(!has_force_and_call)
   compose <- function(f, g, ...) function(x) f(g(x))
   fns <- reduce2(list(identity, identity), "foo", compose)
   expect_identical(fns(1), 1)
@@ -144,8 +161,8 @@ test_that("basic accumulate2() works", {
   paste2 <- function(x, y, sep) paste(x, y, sep = sep)
 
   x <- c("a", "b", "c")
-  expect_equal(accumulate2(x, c("-", "."), paste2), list("a", "a-b", "a-b.c"))
-  expect_equal(accumulate2(x, c(".", "-", "."), paste2, .init = "x"), list("x", "x.a", "x.a-b", "x.a-b.c"))
+  expect_equal(accumulate2(x, c("-", "."), paste2), c("a", "a-b", "a-b.c"))
+  expect_equal(accumulate2(x, c(".", "-", "."), paste2, .init = "x"), c("x", "x.a", "x.a-b", "x.a-b.c"))
 })
 
 test_that("can terminate accumulate2() early", {
@@ -159,12 +176,11 @@ test_that("can terminate accumulate2() early", {
   }
 
   x <- c("a", "b", "c")
-  expect_equal(accumulate2(x, c("-", "."), paste2), list("a", "a-b"))
-  expect_equal(accumulate2(x, c(".", "-", "."), paste2, .init = "x"), list("x", "x.a", "x.a-b"))
+  expect_equal(accumulate2(x, c("-", "."), paste2), c("a", "a-b"))
+  expect_equal(accumulate2(x, c(".", "-", "."), paste2, .init = "x"), c("x", "x.a", "x.a-b"))
 })
 
 test_that("accumulate2() forces arguments (#643)", {
-  skip_if(!has_force_and_call)
   compose <- function(f, g, ...) function(x) f(g(x))
   fns <- accumulate2(list(identity, identity), "foo", compose)
   expect_true(every(fns, function(f) identical(f(1), 1)))
@@ -174,28 +190,29 @@ test_that("accumulate2() forces arguments (#643)", {
 # Life cycle --------------------------------------------------------------
 
 test_that("right variants are retired", {
-  scoped_lifecycle_warnings()
-  expect_warning(reduce_right(1:3, c), "soft-deprecated")
-  expect_warning(reduce2_right(1:3, 1:2, c), "soft-deprecated")
-  expect_warning(accumulate_right(1:3, c), "soft-deprecated")
+  expect_snapshot({
+    . <- reduce_right(1:3, c)
+    . <- reduce2_right(1:3, 1:2, c)
+    . <- accumulate_right(1:3, c)
+  })
 })
 
 test_that("reduce_right still works", {
-  scoped_lifecycle_silence()
+  local_options(lifecycle_verbosity = "quiet")
   expect_equal(reduce_right(c(1, 1), `+`), 2)
   expect_equal(reduce_right(c(1, 1), `+`, .init = 1), 3)
   expect_equal(reduce_right(1, `+`, .init = 1), 2)
 })
 
 test_that("reduce_right equivalent to reversing input", {
-  scoped_lifecycle_silence()
+  local_options(lifecycle_verbosity = "quiet")
   x <- list(c(2, 1), c(4, 3), c(6, 5))
   expect_equal(reduce_right(x, c), c(6, 5, 4, 3, 2, 1))
   expect_equal(reduce_right(x, c, .init = 7), c(7, 6, 5, 4, 3, 2, 1))
 })
 
 test_that("reduce2_right still works", {
-  scoped_lifecycle_silence()
+  local_options(lifecycle_verbosity = "quiet")
 
   paste2 <- function(x, y, sep) paste(x, y, sep = sep)
   x <- c("a", "b", "c")
@@ -205,11 +222,10 @@ test_that("reduce2_right still works", {
   x <- list(c(0, 1), c(2, 3), c(4, 5))
   y <- list(c(6, 7), c(8, 9))
   expect_equal(reduce2_right(x, y, paste), c("4 2 8 0 6", "5 3 9 1 7"))
-  expect_error(reduce2_right(y, x, paste))
 })
 
 test_that("accumulate_right still works", {
-  scoped_lifecycle_silence()
+  local_options(lifecycle_verbosity = "quiet")
 
   tt <- c("a", "b", "c")
   expect_equal(accumulate_right(tt, paste, sep = "."), c("c.b.a", "c.b", "c"))

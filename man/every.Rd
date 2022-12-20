@@ -13,13 +13,17 @@ some(.x, .p, ...)
 none(.x, .p, ...)
 }
 \arguments{
-\item{.x}{A list or atomic vector.}
+\item{.x}{A list or vector.}
 
-\item{.p}{A predicate function to apply on each element of \code{.x}.
-\code{some()} returns \code{TRUE} when \code{.p} is \code{TRUE} for at least one
-element. \code{every()} returns \code{TRUE} when \code{.p} is \code{TRUE} for all
-elements. \code{none()} returns \code{TRUE} when \code{.p} is \code{FALSE} for all
-elements.`}
+\item{.p}{A predicate function (i.e. a function that returns either \code{TRUE}
+or \code{FALSE}) specified in one of the following ways:
+\itemize{
+\item A named function, e.g. \code{is.character}.
+\item An anonymous function, e.g. \verb{\\(x) all(x < 0)} or \code{function(x) all(x < 0)}.
+\item A formula, e.g. \code{~ all(.x < 0)}. You must use \code{.x} to refer to the first
+argument). Only recommended if you require backward compatibility with
+older versions of R.
+}}
 
 \item{...}{Additional arguments passed on to \code{.p}.}
 }
@@ -27,12 +31,23 @@ elements.`}
 A logical vector of length 1.
 }
 \description{
-Do every, some, or none of the elements of a list satisfy a predicate?
+\itemize{
+\item \code{some()} returns \code{TRUE} when \code{.p} is \code{TRUE} for at least one element.
+\item \code{every()} returns \code{TRUE} when \code{.p} is \code{TRUE} for all elements.
+\item \code{none()} returns \code{TRUE} when \code{.p} is \code{FALSE} for all elements.
+}
 }
 \examples{
-y <- list(0:10, 5.5)
-y \%>\% every(is.numeric)
-y \%>\% every(is.integer)
-y \%>\% some(is.integer)
-y \%>\% none(is.character)
+x <- list(0:10, 5.5)
+x |> every(is.numeric)
+x |> every(is.integer)
+x |> some(is.integer)
+x |> none(is.character)
+
+# Missing values are propagated:
+some(list(NA, FALSE), identity)
+
+# If you need to use these functions in a context where missing values are
+# unsafe (e.g. in `if ()` conditions), make sure to use safe predicates:
+if (some(list(NA, FALSE), rlang::is_true)) "foo" else "bar"
 }
