@@ -6,6 +6,7 @@
 \alias{imap_chr}
 \alias{imap_int}
 \alias{imap_dbl}
+\alias{imap_vec}
 \alias{iwalk}
 \title{Apply a function to each element of a vector, and its index}
 \usage{
@@ -18,6 +19,8 @@ imap_chr(.x, .f, ...)
 imap_int(.x, .f, ...)
 
 imap_dbl(.x, .f, ...)
+
+imap_vec(.x, .f, ...)
 
 iwalk(.x, .f, ...)
 }
@@ -67,10 +70,10 @@ iwalk(mtcars, \(x, idx) cat(idx, ": ", median(x), "\n", sep = ""))
 \seealso{
 Other map variants: 
 \code{\link{lmap}()},
+\code{\link{map}()},
 \code{\link{map2}()},
 \code{\link{map_depth}()},
 \code{\link{map_if}()},
-\code{\link{map}()},
 \code{\link{modify}()},
 \code{\link{pmap}()}
 }

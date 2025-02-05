@@ -8,7 +8,22 @@
 #' `f` over `1:3` computes the value `f(f(1, 2), 3)`.
 #'
 #' @inheritParams map
-#' @param .y For `reduce2()` and `accumulate2()`, an additional
+#' @param ... Additional arguments passed on to the reduce function.
+#'
+#'   We now generally recommend against using `...` to pass additional
+#'   (constant) arguments to `.f`. Instead use a shorthand anonymous function:
+#'
+#'   ```R
+#'   # Instead of
+#'   x |> reduce(f, 1, 2, collapse = ",")
+#'   # do:
+#'   x |> reduce(\(x, y) f(x, y, 1, 2, collapse = ","))
+#'   ```
+#'
+#'   This makes it easier to understand which arguments belong to which
+#'   function and will tend to yield better error messages.
+#'
+#' @param .y For `reduce2()` an additional
 #'   argument that is passed to `.f`. If `init` is not set, `.y`
 #'   should be 1 element shorter than `.x`.
 #' @param .f For `reduce()`, a 2-argument function. The function will be passed
@@ -42,30 +57,6 @@
 #' reduced value. For instance, reducing a vector with `list()` from
 #' the left produces a left-leaning nested list (or tree), while
 #' reducing `list()` from the right produces a right-leaning list.
-#'
-#' @section Life cycle:
-#'
-#' `reduce_right()` is soft-deprecated as of purrr 0.3.0. Please use
-#' the `.dir` argument of `reduce()` instead. Note that the algorithm
-#' has changed. Whereas `reduce_right()` computed `f(f(3, 2), 1)`,
-#' `reduce(.dir = \"backward\")` computes `f(1, f(2, 3))`. This is the
-#' standard way of reducing from the right.
-#'
-#' To update your code with the same reduction as `reduce_right()`,
-#' simply reverse your vector and use a left reduction:
-#'
-#' ```{r, eval = FALSE}
-#' # Before:
-#' reduce_right(1:3, f)
-#'
-#' # After:
-#' reduce(rev(1:3), f)
-#' ```
-#'
-#' `reduce2_right()` is soft-deprecated as of purrr 0.3.0 without
-#' replacement. It is not clear what algorithmic properties should a
-#' right reduction have in this case. Please reach out if you know
-#' about a use case for a right reduction with a ternary function.
 #'
 #' @seealso [accumulate()] for a version that returns all intermediate
 #'   values of the reduction.
@@ -471,7 +462,7 @@ seq_len2 <- function(start, end) {
 #'   set_names(paste0("sim", 1:5)) |>
 #'   map(\(l) accumulate(l, \(acc, nxt) .05 + acc + nxt)) |>
 #'   map(\(x) tibble(value = x, step = 1:100)) |>
-#'   list_rbind(id = "simulation") |>
+#'   list_rbind(names_to = "simulation") |>
 #'   ggplot(aes(x = step, y = value)) +
 #'     geom_line(aes(color = simulation)) +
 #'     ggtitle("Simulations of a random walk with drift")
@@ -515,12 +506,29 @@ accumulate_names <- function(nms, init, dir) {
 #' @description
 #' `r lifecycle::badge("deprecated")`
 #'
-#' These functions were deprecated in purrr 0.3.0. Please use the
-#' `.dir` argument of [reduce()] instead, or reverse your vectors
-#' and use a left reduction.
+#' `reduce_right()` is soft-deprecated as of purrr 0.3.0. Please use
+#' the `.dir` argument of `reduce()` instead. Note that the algorithm
+#' has changed. Whereas `reduce_right()` computed `f(f(3, 2), 1)`,
+#' `reduce(.dir = \"backward\")` computes `f(1, f(2, 3))`. This is the
+#' standard way of reducing from the right.
+#'
+#' To update your code with the same reduction as `reduce_right()`,
+#' simply reverse your vector and use a left reduction:
+#'
+#' ```R
+#' # Before:
+#' reduce_right(1:3, f)
+#'
+#' # After:
+#' reduce(rev(1:3), f)
+#' ```
+#'
+#' `reduce2_right()` is deprecated as of purrr 0.3.0 without
+#' replacement. It is not clear what algorithmic properties should a
+#' right reduction have in this case. Please reach out if you know
+#' about a use case for a right reduction with a ternary function.
 #'
 #' @inheritParams reduce
-#'
 #' @keywords internal
 #' @export
 reduce_right <- function(.x, .f, ..., .init) {

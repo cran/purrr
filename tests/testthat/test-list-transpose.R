@@ -4,6 +4,13 @@ test_that("can transpose homogenous list", {
   expect_equal(out, list(a = c(x = 1, y = 3), b = c(x = 2, y = 4)))
 })
 
+test_that("can't transpose data frames", {
+  df <- data.frame(x = 1:2, y = 4:5)
+
+  # i.e. be consistent with other `list_*()` functions from purrr/vctrs
+  expect_snapshot(error = TRUE, list_transpose(df))
+})
+
 test_that("transposing empty list returns empty list", {
   expect_equal(list_transpose(list()), list())
 })
@@ -13,7 +20,7 @@ test_that("can use character template", {
   # Default:
   expect_equal(
     list_transpose(x, default = NA),
-    list(a = c(1, NA), b = c(2, 3))
+    list(a = c(1, NA), b = c(2, 3), c = c(NA, 4))
   )
 
   # Change order
@@ -128,5 +135,15 @@ test_that("validates inputs", {
   expect_snapshot(error = TRUE, {
     list_transpose(10)
     list_transpose(list(1), template = mean)
+  })
+})
+
+test_that("fail mixing named and unnamed vectors", {
+  test_list_transpose <- function() {
+    x <- list(list(a = 1, b = 2), list(a = 3, b = 4))
+    list_transpose(list(x = list(a = 1, b = 2), y = list(3, 4)))
+  }
+  expect_snapshot(error = TRUE, {
+    test_list_transpose()
   })
 })

@@ -8,8 +8,7 @@
 [![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/purrr)](https://cran.r-project.org/package=purrr)
 [![Codecov test
 coverage](https://codecov.io/gh/tidyverse/purrr/branch/master/graph/badge.svg)](https://app.codecov.io/gh/tidyverse/purrr?branch=master)
-[![R build
-status](https://github.com/tidyverse/purrr/workflows/R-CMD-check/badge.svg)](https://github.com/tidyverse/purrr/actions)
+[![R-CMD-check](https://github.com/tidyverse/purrr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tidyverse/purrr/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Overview
@@ -20,7 +19,7 @@ vectors. If you’ve never heard of FP before, the best place to start is
 the family of `map()` functions which allow you to replace many for
 loops with code that is both more succinct and easier to read. The best
 place to learn about the `map()` functions is the [iteration
-chapter](https://r4ds.had.co.nz/iteration.html) in R for data science.
+chapter](https://r4ds.hadley.nz/iteration) in R for Data Science.
 
 ## Installation
 
@@ -32,8 +31,8 @@ install.packages("tidyverse")
 install.packages("purrr")
 
 # Or the the development version from GitHub:
-# install.packages("remotes")
-remotes::install_github("tidyverse/purrr")
+# install.packages("pak")
+pak::pak("tidyverse/purrr")
 ```
 
 ## Cheatsheet
@@ -52,7 +51,7 @@ library(purrr)
 mtcars |> 
   split(mtcars$cyl) |>  # from base R
   map(\(df) lm(mpg ~ wt, data = df)) |> 
-  map(summary) %>%
+  map(summary) |>
   map_dbl("r.squared")
 #>         4         6         8 
 #> 0.5086326 0.4645102 0.4229655

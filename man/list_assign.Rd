@@ -29,7 +29,7 @@ replacement values are stored in a list, you can splice that in with
 a node (by returning \code{TRUE}) or a leaf (by returning \code{FALSE}). The
 default value, \code{NULL}, treats simple lists as nodes and everything else
 (including richer objects like data frames and linear models) as leaves,
-using \code{\link[vctrs:vec_is_list]{vctrs::vec_is_list()}}. To recurse into all objects built on lists
+using \code{\link[vctrs:obj_is_list]{vctrs::obj_is_list()}}. To recurse into all objects built on lists
 use \code{\link[=is.list]{is.list()}}.}
 }
 \description{
@@ -47,12 +47,13 @@ str(x)
 
 # Update values
 str(list_assign(x, a = 1))
+
 # Replace values
 str(list_assign(x, z = 5))
 str(list_assign(x, z = NULL))
-
 str(list_assign(x, z = list(a = 1:5)))
-# replace recursively, leaving the other elements of z alone
+
+# Replace recursively with list_modify(), leaving the other elements of z alone
 str(list_modify(x, z = list(a = 1:5)))
 
 # Remove values

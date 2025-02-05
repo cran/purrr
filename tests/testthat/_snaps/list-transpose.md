@@ -1,3 +1,11 @@
+# can't transpose data frames
+
+    Code
+      list_transpose(df)
+    Condition
+      Error in `list_transpose()`:
+      ! `x` must be a list, not a <data.frame> object.
+
 # integer template requires exact length of list() simplify etc
 
     Code
@@ -63,4 +71,12 @@
     Condition
       Error in `list_transpose()`:
       ! `template` must be a character or numeric vector, not a function.
+
+# fail mixing named and unnamed vectors
+
+    Code
+      test_list_transpose()
+    Condition
+      Error in `list_transpose()`:
+      ! Can't combine named and unnamed vectors.
 

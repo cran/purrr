@@ -55,7 +55,7 @@ no elements at depth \code{.depth}.}
 a node (by returning \code{TRUE}) or a leaf (by returning \code{FALSE}). The
 default value, \code{NULL}, treats simple lists as nodes and everything else
 (including richer objects like data frames and linear models) as leaves,
-using \code{\link[vctrs:vec_is_list]{vctrs::vec_is_list()}}. To recurse into all objects built on lists
+using \code{\link[vctrs:obj_is_list]{vctrs::obj_is_list()}}. To recurse into all objects built on lists
 use \code{\link[=is.list]{is.list()}}.}
 }
 \description{
@@ -119,15 +119,15 @@ allows you to apply a function to every leaf or every node.
 Other map variants: 
 \code{\link{imap}()},
 \code{\link{lmap}()},
+\code{\link{map}()},
 \code{\link{map2}()},
 \code{\link{map_if}()},
-\code{\link{map}()},
 \code{\link{modify}()},
 \code{\link{pmap}()}
 
 Other modify variants: 
-\code{\link{modify_tree}()},
-\code{\link{modify}()}
+\code{\link{modify}()},
+\code{\link{modify_tree}()}
 }
 \concept{map variants}
 \concept{modify variants}

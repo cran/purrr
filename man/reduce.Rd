@@ -23,15 +23,15 @@ second argument, and the next value of \code{.y} as the third argument.
 The reduction terminates early if \code{.f} returns a value wrapped in
 a \code{\link[=done]{done()}}.}
 
-\item{...}{Additional arguments passed on to the mapped function.
+\item{...}{Additional arguments passed on to the reduce function.
 
 We now generally recommend against using \code{...} to pass additional
 (constant) arguments to \code{.f}. Instead use a shorthand anonymous function:
 
 \if{html}{\out{<div class="sourceCode R">}}\preformatted{# Instead of
-x |> map(f, 1, 2, collapse = ",")
+x |> reduce(f, 1, 2, collapse = ",")
 # do:
-x |> map(\\(x) f(x, 1, 2, collapse = ","))
+x |> reduce(\\(x, y) f(x, y, 1, 2, collapse = ","))
 }\if{html}{\out{</div>}}
 
 This makes it easier to understand which arguments belong to which
@@ -46,7 +46,7 @@ is empty. If missing, and \code{.x} is empty, will throw an error.}
 \code{"forward"} (the default) or \code{"backward"}. See the section about
 direction below.}
 
-\item{.y}{For \code{reduce2()} and \code{accumulate2()}, an additional
+\item{.y}{For \code{reduce2()} an additional
 argument that is passed to \code{.f}. If \code{init} is not set, \code{.y}
 should be 1 element shorter than \code{.x}.}
 }
@@ -68,31 +68,6 @@ In other cases, the direction has important consequences on the
 reduced value. For instance, reducing a vector with \code{list()} from
 the left produces a left-leaning nested list (or tree), while
 reducing \code{list()} from the right produces a right-leaning list.
-}
-
-\section{Life cycle}{
-
-
-\code{reduce_right()} is soft-deprecated as of purrr 0.3.0. Please use
-the \code{.dir} argument of \code{reduce()} instead. Note that the algorithm
-has changed. Whereas \code{reduce_right()} computed \code{f(f(3, 2), 1)},
-\verb{reduce(.dir = \\"backward\\")} computes \code{f(1, f(2, 3))}. This is the
-standard way of reducing from the right.
-
-To update your code with the same reduction as \code{reduce_right()},
-simply reverse your vector and use a left reduction:
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{# Before:
-reduce_right(1:3, f)
-
-# After:
-reduce(rev(1:3), f)
-}\if{html}{\out{</div>}}
-
-\code{reduce2_right()} is soft-deprecated as of purrr 0.3.0 without
-replacement. It is not clear what algorithmic properties should a
-right reduction have in this case. Please reach out if you know
-about a use case for a right reduction with a ternary function.
 }
 
 \examples{
