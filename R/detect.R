@@ -2,6 +2,16 @@
 #'
 #' @inheritParams keep
 #' @inheritParams map
+#' @param .f A function, specified in one of the following ways:
+#'
+#'   * A named function, e.g. `mean`.
+#'   * An anonymous function, e.g. `\(x) x + 1` or `function(x) x + 1`.
+#'   * A formula, e.g. `~ .x + 1`. You must use `.x` to refer to the first
+#'     argument. No longer recommended.
+#'   * A string, integer, or list, e.g. `"idx"`, `1`, or `list("idx", 1)` which
+#'     are shorthand for `\(x) pluck(x, "idx")`, `\(x) pluck(x, 1)`, and
+#'     `\(x) pluck(x, "idx", 1)` respectively. Optionally supply `.default` to
+#'     set a default value if the indexed element is `NULL` or does not exist.
 #' @param .dir If `"forward"`, the default, starts at the beginning of
 #'   the vector and move towards the end; if `"backward"`, starts at
 #'   the end of the vector and moves towards the beginning.
@@ -41,7 +51,14 @@
 #'
 #' # If you need to find all positions, use map_lgl():
 #' which(map_lgl(x, "foo"))
-detect <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL, .default = NULL) {
+detect <- function(
+  .x,
+  .f,
+  ...,
+  .dir = c("forward", "backward"),
+  .right = NULL,
+  .default = NULL
+) {
   .f <- as_predicate(.f, ..., .mapper = TRUE)
   .dir <- arg_match0(.dir, c("forward", "backward"))
 
@@ -56,7 +73,13 @@ detect <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL, 
 
 #' @export
 #' @rdname detect
-detect_index <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = NULL) {
+detect_index <- function(
+  .x,
+  .f,
+  ...,
+  .dir = c("forward", "backward"),
+  .right = NULL
+) {
   .f <- as_predicate(.f, ..., .mapper = TRUE)
   .dir <- arg_match0(.dir, c("forward", "backward"))
 
@@ -68,7 +91,6 @@ detect_index <- function(.x, .f, ..., .dir = c("forward", "backward"), .right = 
 
   0L
 }
-
 
 
 index <- function(x, dir, right = NULL, fn) {
