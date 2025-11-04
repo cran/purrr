@@ -23,7 +23,7 @@
 #'
 #'   * A named function, e.g. `mean`.
 #'   * An anonymous function, e.g. `\(x) x + 1` or `function(x) x + 1`.
-#'   * A formula, e.g. `~ .x + 1`. You must use `.x` to refer to the first
+#'   * A formula, e.g. `~ .x + 1`. Use `.x` to refer to the first
 #'     argument. No longer recommended.
 #'   * A string, integer, or list, e.g. `"idx"`, `1`, or `list("idx", 1)` which
 #'     are shorthand for `\(x) pluck(x, "idx")`, `\(x) pluck(x, 1)`, and
@@ -186,7 +186,6 @@ map_dbl <- function(.x, .f, ..., .progress = FALSE) {
 #' @rdname map
 #' @export
 map_chr <- function(.x, .f, ..., .progress = FALSE) {
-  local_deprecation_user_env()
   map_("character", .x, .f, ..., .progress = .progress)
 }
 
@@ -199,6 +198,12 @@ map_ <- function(
   .purrr_user_env = caller_env(2),
   .purrr_error_call = caller_env()
 ) {
+  .progress <- as_progress(
+    .progress,
+    user_env = .purrr_user_env,
+    caller_env = .purrr_error_call
+  )
+
   .x <- vctrs_vec_compat(.x, .purrr_user_env)
   vec_assert(.x, arg = ".x", call = .purrr_error_call)
 
@@ -230,7 +235,18 @@ mmap_ <- function(.x, .f, .progress, .type, error_call, ...) {
 
   m <- mirai::mirai_map(.x, .f)
 
-  options <- c(".stop", if (isTRUE(.progress)) ".progress")
+  options <- if (isFALSE(.progress)) {
+    ".stop"
+  } else if (is.logical(.progress)) {
+    c(".stop", ".progress")
+  } else if (is.character(.progress) || is.list(.progress)) {
+    list(.stop = TRUE, .progress = .progress)
+  } else {
+    cli::cli_abort(
+      "Unknown cli progress bar configuation, see manual.",
+      call = error_call
+    )
+  }
   x <- with_parallel_indexed_errors(
     mirai::collect_mirai(m, options = options),
     interrupt_expr = mirai::stop_mirai(m),

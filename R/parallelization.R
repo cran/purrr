@@ -36,11 +36,18 @@
 #'   within the function to attach a package to the search path, which allows
 #'   subsequent use of package functions without the explicit namespace.
 #'
-#' * They should declare any data they depend on. You can declare data by
-#'   supplying additional named arguments to `...`. When supplying an anonymous
-#'   function to a locally-defined function of the form `\(x) fun(x)`, the
-#'   function `fun` itself must be supplied to `...`. The entire call would then
-#'   be of the form: `in_parallel(\(x) fun(x), fun = fun)`.
+#' * They should declare any data they depend on. Declare data by supplying
+#'   named arguments to `...`. When `.f` is an anonymous function to a
+#'   locally-defined function of the form `\(x) fun(x)`, `fun` itself must be
+#'   supplied to `...` in the manner of: `in_parallel(\(x) fun(x), fun = fun)`.
+#'
+#' * Functions (closures) supplied to `...` must themselves be self-contained,
+#'   as they are modified to share the same closure as the main function. This
+#'   means that all helper functions and other required variables must also be
+#'   supplied as further `...` arguments. This applies only for functions
+#'   directly supplied to `...`: containers (such as lists) are not
+#'   recursively analysed. In other words, if you supply complex
+#'   objects to `...` you're at risk of unexpectedly including large objects.
 #'
 #' [in_parallel()] is a simple wrapper of [carrier::crate()] and you may refer
 #' to that package for more details.
@@ -57,11 +64,14 @@
 #' # Use :: to namespace all package functions:
 #' map(1:3, in_parallel(\(x) vctrs::vec_init(integer(), x)))
 #'
-#' fun <- function(x) { x + x %% 2 }
-#' # Operating in parallel, locally-defined objects will not be found:
-#' map(1:3, in_parallel(\(x) x + fun(x)))
-#' # Use the ... argument to supply those objects:
-#' map(1:3, in_parallel(\(x) x + fun(x), fun = fun))
+#' fun <- function(x) { param + helper(x) }
+#' helper <- function(x) { x %% 2 }
+#' param <- 5
+#' # Operating in parallel, locally-defined functions, including helper
+#' # functions and other objects required by it, will not be found:
+#' map(1:3, in_parallel(\(x) fun(x)))
+#' # Use the ... argument to supply these objects:
+#' map(1:3, in_parallel(\(x) fun(x), fun = fun, helper = helper, param = param))
 #' ```
 #'
 #' @section When to use:
@@ -70,6 +80,7 @@
 #' taking 1/n of the time. Additional overhead from setting up the parallel task
 #' and communicating with parallel processes eats into this benefit, and can
 #' outweigh it for very short tasks or those involving large amounts of data.
+#'
 #' The threshold at which parallelization becomes clearly beneficial will differ
 #' according to your individual setup and task, but a rough guide would be in
 #' the order of 100 microseconds to 1 millisecond for each map iteration.
@@ -83,7 +94,7 @@
 #'
 #' Daemons must be set prior to performing any parallel map operation, otherwise
 #' [in_parallel()] will fall back to sequential processing. To ensure that maps
-#' are always performed in parallel, put [mirai::require_daemons()] before the
+#' are always performed in parallel, place [mirai::require_daemons()] before the
 #' map.
 #'
 #' It is usual to set daemons once per session. You can leave them running on
@@ -117,12 +128,13 @@
 #' to explicitly terminate daemons in this instance, although it is still good
 #' practice to do so.
 #'
-#' Note: it should always be for the user to set daemons. If you are using
-#' parallel map within a package, do not make any [mirai::daemons()] calls
-#' within the package, as it should always be up to the user how they wish to
-#' set up parallel processing e.g. using local or remote daemons. This also
-#' helps prevent inadvertently spawning too many daemons if functions are used
-#' recursively within each other.
+#' Note: if you are using parallel map within a package, do not make any
+#' [mirai::daemons()] calls within your package. It should always be
+#' up to the user how they wish to set up parallel processing: (i) resources are
+#' only known at run-time e.g. availability of local or remote daemons, (ii)
+#' packages should make use of existing daemons when already set, rather than
+#' reset them, and (iii) it helps prevent inadvertently spawning too many
+#' daemons when functions are used recursively within each other.
 #'
 #' @references
 #'
@@ -135,14 +147,25 @@
 #' @examplesIf interactive() && rlang::is_installed("mirai") && rlang::is_installed("carrier")
 #' # Run in interactive sessions only as spawns additional processes
 #'
+#' default_param <- 0.5
+#'
+#' delay <- function(secs = default_param) {
+#'   Sys.sleep(secs)
+#' }
+#'
 #' slow_lm <- function(formula, data) {
-#'   Sys.sleep(0.5)
+#'   delay()
 #'   lm(formula, data)
 #' }
 #'
 #' # Example of a 'crate' returned by in_parallel(). The object print method
 #' # shows the size of the crate and any objects contained within:
-#' crate <- in_parallel(\(df) slow_lm(mpg ~ disp, data = df), slow_lm = slow_lm)
+#' crate <- in_parallel(
+#'   \(df) slow_lm(mpg ~ disp, data = df),
+#'   slow_lm = slow_lm,
+#'   delay = delay,
+#'   default_param = default_param
+#' )
 #' crate
 #'
 #' # Use mirai::mirai() to test that a crate is self-contained
@@ -171,7 +194,7 @@ parallel_pkgs_installed <- function() {
     {
       check_installed(
         c("carrier", "mirai"),
-        version = c("0.2.0", "2.4.0"),
+        version = c("0.3.0", "2.5.1"),
         reason = "for parallel map."
       )
       the$parallel_pkgs_installed <- TRUE

@@ -31,7 +31,7 @@ walk(.x, .f, ..., .progress = FALSE)
 \itemize{
 \item A named function, e.g. \code{mean}.
 \item An anonymous function, e.g. \verb{\\(x) x + 1} or \code{function(x) x + 1}.
-\item A formula, e.g. \code{~ .x + 1}. You must use \code{.x} to refer to the first
+\item A formula, e.g. \code{~ .x + 1}. Use \code{.x} to refer to the first
 argument. No longer recommended.
 \item A string, integer, or list, e.g. \code{"idx"}, \code{1}, or \code{list("idx", 1)} which
 are shorthand for \verb{\\(x) pluck(x, "idx")}, \verb{\\(x) pluck(x, 1)}, and
@@ -155,7 +155,7 @@ mtcars |>
   map(summary) |>
   map_dbl("r.squared")
 
-\dontshow{if (interactive() && rlang::is_installed("mirai") && rlang::is_installed("carrier")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (interactive() && rlang::is_installed("mirai") && rlang::is_installed("carrier")) withAutoprint(\{ # examplesIf}
 # Run in interactive sessions only as spawns additional processes
 
 # To use parallelized map:
