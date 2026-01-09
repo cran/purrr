@@ -1,3 +1,7 @@
+# purrr 1.2.1
+
+* Tweaks for compatibility with upcoming vctrs 0.7.0.
+
 # purrr 1.2.0
 
 ## Breaking changes

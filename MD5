@@ -1,7 +1,7 @@
-62f0c63fc870134ed9d1cbfc1c8d018d *DESCRIPTION
+12599885c25b28022bfe2665a8fd0057 *DESCRIPTION
 08d07c474f334bd4fd11467a9b5028d1 *LICENSE
 9633cd07140f89882461e1b5f6baa1c3 *NAMESPACE
-92bd806604fe609bcd76852090d59698 *NEWS.md
+c6c1889f69dd03a5bf86eb51d7c52664 *NEWS.md
 849b41f5e471f84dfce49867a3d0ed9c *R/adverb-auto-browse.R
 94899d1cf71a2eb3e69cd8bec078862c *R/adverb-compose.R
 4d6998e2f3b91840d43382ba41c4e705 *R/adverb-insistently.R
@@ -11,7 +11,7 @@ a523ef572de757421451f03865e449dc *R/adverb-possibly.R
 a6c11bf334099256b85cf1cc9f12a4a2 *R/adverb-quietly.R
 5636f74aae6b4661b9a4ff595ed57149 *R/adverb-safely.R
 a7adda4b54d8cd3253165fec950ae553 *R/adverb-slowly.R
-b515804113cc549bc506e63313f1c591 *R/arrays.R
+efee0ba51584da8c478a86f39aa83331 *R/arrays.R
 3b5b847b3ab116d84f02ce849d5d691f *R/cleancall.R
 fd40672225cb6b82fb57d391fb4dde38 *R/coerce.R
 fa46e60c734343b50fc65a0340f8522d *R/compat-obj-type.R
@@ -63,7 +63,7 @@ d5ae04671aaafd61eb9f22897d44c423 *R/superseded-map-df.R
 c6c70b19ad301896c2949613f1eebee4 *R/superseded-transpose.R
 ba11a8f9e5ed9cf92d845971be084f68 *R/utils.R
 02b699df000f8c8a85524e742c0fa54f *README.md
-6fecb8a653ec886a181ac0d77c1c5c72 *build/vignette.rds
+aaa79747e596f8ebaf97334da9019508 *build/vignette.rds
 211b73eca0cae17eb855b3067ab6d8fb *inst/doc/base.R
 b44c347c7cf1ed68e512eb02cf2d27a6 *inst/doc/base.Rmd
 e763eb1ad6b4ca8b54d15cda2cb762cd *inst/doc/base.html
@@ -99,7 +99,7 @@ efba13d3891d9627d2ad9aa3006aaf88 *man/flatten.Rd
 01da9802fe500f7257ccc2dfbeec9d67 *man/has_element.Rd
 af76e793cdbc6a32fc65bbf80304baae *man/head_while.Rd
 f96d2743aeed6685f6406d2b205df129 *man/imap.Rd
-dbdb64259f008d72ea9c1b5a885f0f1e *man/in_parallel.Rd
+209be44888efecb51195121d4ea9263b *man/in_parallel.Rd
 6d33a6ff2291f210668af6a233c9df0d *man/insistently.Rd
 d9eb7a573a99415abbdfa520c1a91971 *man/invoke.Rd
 d7b426e42da4c5e449500948903c0c60 *man/keep.Rd
